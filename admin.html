@@ -2,19 +2,35 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaaS Модератор</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Модератор</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Плавное нажатие для мобильных кнопок */
+        button:active {
+            transform: scale(0.97);
+        }
+    </style>
 </head>
-<body class="bg-slate-100 p-8 font-sans">
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
-        <div class="flex justify-between items-center mb-8 border-b pb-4">
-            <h1 class="text-3xl font-bold text-slate-800">SaaS Модератор 🛡️</h1>
-            <span class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full text-sm font-semibold">Панель управления</span>
-        </div>
+<body class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased">
+
+    <!-- Главный контейнер (адаптирован под мобилки) -->
+    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6">
         
-        <div id="reviews-container" class="space-y-6">
-            <!-- Отзывы будут загружаться сюда -->
+        <!-- Шапка приложения -->
+        <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+                <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Модератор 🛡️</h1>
+            </div>
+            <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase">
+                WebView
+            </span>
+        </div>
+
+        <!-- Контейнер для отзывов -->
+        <div id="reviews-container" class="space-y-4">
+            <!-- Сюда динамически подгружаются карточки -->
         </div>
     </div>
 
@@ -24,7 +40,6 @@
         // Функция загрузки отзывов
         async function loadReviews() {
             try {
-                // Добавили header для обхода заглушки ngrok
                 const response = await fetch(`${API_URL}/api/reviews`, {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -33,7 +48,11 @@
                 container.innerHTML = '';
 
                 if (reviews.length === 0) {
-                    container.innerHTML = '<p class="text-gray-500 text-center py-8">Отзывов пока нет.</p>';
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <p class="text-4xl mb-2">☕</p>
+                            <p class="text-gray-400 font-medium text-sm">Новых отзывов нет</p>
+                        </div>`;
                     return;
                 }
 
@@ -41,46 +60,56 @@
                     const isApproved = review.status === 'approved';
                     const reviewDiv = document.createElement('div');
                     
-                    reviewDiv.className = `p-6 border rounded-xl shadow-sm transition-all ${isApproved ? 'bg-slate-50 border-slate-200' : 'bg-orange-50 border-orange-200'}`;
+                    // Стиль карточки
+                    reviewDiv.className = `p-4 sm:p-5 rounded-xl border transition-all ${
+                        isApproved 
+                        ? 'bg-slate-50/50 border-slate-200' 
+                        : 'bg-amber-50/60 border-amber-200/80 shadow-sm'
+                    }`;
                     
                     let adminBlock = '';
                     if (!isApproved) {
+                        // Блок действий для нового отзыва (Адаптивный под пальцы)
                         adminBlock = `
-                        <div class="mt-5 flex flex-wrap gap-3">
-                            <button onclick="approveOnly(${review.id})" class="bg-emerald-500 text-white px-5 py-3 rounded-lg hover:bg-emerald-600 font-semibold transition-colors shadow-sm whitespace-nowrap">
-                                ✓ Одобрить (без ответа)
+                        <div class="mt-4 pt-3 border-t border-amber-200/50 flex flex-col gap-2 sm:gap-3">
+                            <button onclick="approveOnly(${review.id})" class="w-full bg-emerald-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-sm active:bg-emerald-800">
+                                ✓ Одобрить без ответа
                             </button>
-                            <div class="flex-1 flex gap-3 min-w-[300px]">
-                                <input type="text" id="reply-${review.id}" placeholder="Или напишите ответ..." class="flex-1 border border-orange-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-700">
-                                <button onclick="sendReply(${review.id})" class="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 font-semibold transition-colors shadow-sm">
+                            
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <input type="text" id="reply-${review.id}" placeholder="Ваш ответ..." class="w-full border border-amber-300/80 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-base sm:text-sm">
+                                <button onclick="sendReply(${review.id})" class="w-full sm:w-auto bg-amber-500 text-white py-3 px-5 rounded-xl font-bold text-sm hover:bg-amber-600 transition-all shadow-sm active:bg-amber-700 whitespace-nowrap">
                                     Ответить
                                 </button>
                             </div>
                         </div>`;
                     } else if (review.admin_answer) {
+                        // Блок готового ответа
                         adminBlock = `
-                        <div class="mt-5 bg-white p-4 border-l-4 border-emerald-400 rounded-r-lg shadow-sm">
-                            <p class="text-xs text-emerald-600 font-bold uppercase mb-1">Ответ Зеркала:</p>
-                            <p class="text-gray-800">${review.admin_answer}</p>
+                        <div class="mt-3 bg-white p-3 rounded-lg border-l-4 border-emerald-500 shadow-2xs">
+                            <p class="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wider mb-0.5">Ответ Зеркала</p>
+                            <p class="text-sm text-slate-700 font-medium">${review.admin_answer}</p>
                         </div>`;
                     }
 
                     reviewDiv.innerHTML = `
-                        <div class="flex justify-between items-start mb-3">
-                            <div>
-                                <h3 class="font-bold text-xl text-gray-800">${review.author_name}</h3>
-                                <p class="text-gray-700 mt-2 text-lg">${review.text}</p>
-                            </div>
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider ${
+                                isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-200/70 text-amber-900'
+                            }">
+                                ${isApproved ? '✓ Опубликован' : '⏳ Ожидает'}
+                            </span>
                             
-                            <div class="flex flex-col items-end gap-3">
-                                <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${isApproved ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-200 text-orange-800'}">
-                                    ${isApproved ? '✓ Опубликован' : 'Ожидает модерации'}
-                                </span>
-                                <button onclick="deleteReview(${review.id})" class="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded transition-colors text-sm font-semibold flex items-center gap-1">
-                                    🗑️ Удалить
-                                </button>
-                            </div>
+                            <button onclick="deleteReview(${review.id})" class="text-slate-400 hover:text-red-500 p-1 rounded-lg transition-colors text-xs font-bold flex items-center gap-1 active:bg-red-50">
+                                🗑️ <span class="hidden sm:inline">Удалить</span>
+                            </button>
                         </div>
+
+                        <div class="mb-1">
+                            <h3 class="font-bold text-base text-slate-900">${review.author_name}</h3>
+                            <p class="text-slate-700 text-sm mt-1 leading-relaxed">${review.text}</p>
+                        </div>
+
                         ${adminBlock}
                     `;
                     container.appendChild(reviewDiv);
@@ -94,7 +123,7 @@
         async function sendReply(id) {
             const input = document.getElementById(`reply-${id}`);
             const answer = input.value.trim();
-            if (!answer) { alert('Напишите ответ!'); return; }
+            if (!answer) { alert('Напишите текст ответа!'); return; }
 
             const res = await fetch(`${API_URL}/api/reviews/${id}/reply`, {
                 method: 'PUT',
@@ -117,23 +146,18 @@
             if (res.ok) loadReviews();
         }
 
-        // Функция удаления отзыва
+        // Функция удаления
         async function deleteReview(id) {
-            const isConfirmed = confirm("Вы уверены, что хотите навсегда удалить этот отзыв?");
-            
-            if (isConfirmed) {
+            if (confirm("Удалить этот отзыв навсегда?")) {
                 const res = await fetch(`${API_URL}/api/reviews/${id}`, { 
                     method: 'DELETE',
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
-                if (res.ok) {
-                    loadReviews();
-                } else {
-                    alert('Произошла ошибка при удалении!');
-                }
+                if (res.ok) loadReviews();
             }
         }
 
+        // Запуск при открытии
         loadReviews();
     </script>
 </body>
