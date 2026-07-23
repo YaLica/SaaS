@@ -19,13 +19,15 @@
     </div>
 
     <script>
-        // ВОТ ЗДЕСЬ Я ПОМЕНЯЛ ССЫЛКУ НА NGROK:
         const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
 
         // Функция загрузки отзывов
         async function loadReviews() {
             try {
-                const response = await fetch(`${API_URL}/api/reviews`);
+                // Добавили header для обхода заглушки ngrok
+                const response = await fetch(`${API_URL}/api/reviews`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const reviews = await response.json();
                 const container = document.getElementById('reviews-container');
                 container.innerHTML = '';
@@ -43,7 +45,6 @@
                     
                     let adminBlock = '';
                     if (!isApproved) {
-                        // Оранжевая карточка (Новый отзыв)
                         adminBlock = `
                         <div class="mt-5 flex flex-wrap gap-3">
                             <button onclick="approveOnly(${review.id})" class="bg-emerald-500 text-white px-5 py-3 rounded-lg hover:bg-emerald-600 font-semibold transition-colors shadow-sm whitespace-nowrap">
@@ -57,7 +58,6 @@
                             </div>
                         </div>`;
                     } else if (review.admin_answer) {
-                        // Зеленая карточка (С ответом)
                         adminBlock = `
                         <div class="mt-5 bg-white p-4 border-l-4 border-emerald-400 rounded-r-lg shadow-sm">
                             <p class="text-xs text-emerald-600 font-bold uppercase mb-1">Ответ Зеркала:</p>
@@ -72,7 +72,6 @@
                                 <p class="text-gray-700 mt-2 text-lg">${review.text}</p>
                             </div>
                             
-                            <!-- ПРАВАЯ ЧАСТЬ: Статус и Кнопка удаления -->
                             <div class="flex flex-col items-end gap-3">
                                 <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${isApproved ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-200 text-orange-800'}">
                                     ${isApproved ? '✓ Опубликован' : 'Ожидает модерации'}
@@ -99,7 +98,10 @@
 
             const res = await fetch(`${API_URL}/api/reviews/${id}/reply`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ admin_answer: answer })
             });
 
@@ -108,26 +110,30 @@
 
         // Функция "Просто одобрить"
         async function approveOnly(id) {
-            const res = await fetch(`${API_URL}/api/reviews/${id}/approve`, { method: 'PUT' });
+            const res = await fetch(`${API_URL}/api/reviews/${id}/approve`, { 
+                method: 'PUT',
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
             if (res.ok) loadReviews();
         }
 
-        // НОВАЯ ФУНКЦИЯ: Удаление отзыва
+        // Функция удаления отзыва
         async function deleteReview(id) {
-            // Спрашиваем подтверждение, чтобы не удалить случайно
             const isConfirmed = confirm("Вы уверены, что хотите навсегда удалить этот отзыв?");
             
             if (isConfirmed) {
-                const res = await fetch(`${API_URL}/api/reviews/${id}`, { method: 'DELETE' });
+                const res = await fetch(`${API_URL}/api/reviews/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 if (res.ok) {
-                    loadReviews(); // Перезагружаем список (удаленный отзыв исчезнет)
+                    loadReviews();
                 } else {
                     alert('Произошла ошибка при удалении!');
                 }
             }
         }
 
-        // Запускаем при открытии
         loadReviews();
     </script>
 </body>
