@@ -7,22 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         button:active { transform: scale(0.97); }
+        .theme-transition { transition: background-color 0.3s ease, color 0.3s ease; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20">
+<body id="app-body" class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20 theme-transition">
 
-    <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6">
+    <!-- Главный контейнер -->
+    <div id="app-card" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 sm:p-6 theme-transition">
         
         <!-- Шапка с кнопкой Настроек -->
-        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100/80">
             <div class="flex items-center gap-2">
                 <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
-                <h1 class="text-xl font-black tracking-tight text-slate-900">Модератор 🛡️</h1>
+                <h1 id="header-title" class="text-xl font-black tracking-tight text-slate-900">Модератор 🛡️</h1>
             </div>
             
             <div class="flex items-center gap-2">
-                <!-- Кнопка Настроек -->
-                <button onclick="toggleSettings()" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-all active:bg-slate-300" title="Настройки">
+                <button onclick="toggleSettings()" class="p-2 bg-slate-100/80 hover:bg-slate-200 rounded-xl text-slate-600 transition-all active:bg-slate-300" title="Настройки">
                     ⚙️
                 </button>
                 <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-xl text-xs font-black tracking-wide uppercase">
@@ -32,15 +33,27 @@
         </div>
 
         <!-- Выпадающие Настройки (⚙️) -->
-        <div id="settings-panel" class="hidden mb-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-3">
+        <div id="settings-panel" class="hidden mb-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-4">
             <div class="flex justify-between items-center border-b pb-2">
-                <span class="font-extrabold text-slate-700">⚙️ Настройки отображения</span>
+                <span class="font-extrabold text-slate-700">⚙️ Настройки и Цвета</span>
                 <button onclick="toggleSettings()" class="text-slate-400 font-bold">✕ Закрыть</button>
             </div>
             
-            <!-- Настройка 1: Лимит на экране -->
+            <!-- Настройка Цвета текущей вкладки -->
             <div>
-                <label class="block font-bold text-slate-600 mb-1.5">Показывать на экране:</label>
+                <label class="block font-bold text-slate-600 mb-2">Цветовая тема для <span id="current-tab-name" class="text-emerald-600">«Отзывы»</span>:</label>
+                <div class="grid grid-cols-5 gap-2 text-center">
+                    <button onclick="setTabTheme('white')" class="p-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 font-bold text-[10px]">⚪ Белая</button>
+                    <button onclick="setTabTheme('dark')" class="p-2 rounded-xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-[10px]">🌙 Тёмная</button>
+                    <button onclick="setTabTheme('blue')" class="p-2 rounded-xl border-2 border-sky-300 bg-sky-100 text-sky-900 font-bold text-[10px]">🩵 Голубой</button>
+                    <button onclick="setTabTheme('yellow')" class="p-2 rounded-xl border-2 border-amber-300 bg-amber-100 text-amber-900 font-bold text-[10px]">💛 Желтый</button>
+                    <button onclick="setTabTheme('green')" class="p-2 rounded-xl border-2 border-emerald-300 bg-emerald-100 text-emerald-900 font-bold text-[10px]">💚 Мята</button>
+                </div>
+            </div>
+
+            <!-- Настройка: Лимит на экране -->
+            <div>
+                <label class="block font-bold text-slate-600 mb-1.5">Показывать карточек на экране:</label>
                 <div class="flex gap-2">
                     <button onclick="setLimit(15)" id="limit-15" class="flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700">15 шт</button>
                     <button onclick="setLimit(20)" id="limit-20" class="flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700">20 шт</button>
@@ -48,7 +61,7 @@
                 </div>
             </div>
 
-            <!-- Настройка 2: Срок хранения -->
+            <!-- Настройка: Срок хранения -->
             <div>
                 <label class="block font-bold text-slate-600 mb-1.5">Хранить архив в базе:</label>
                 <div class="flex gap-2">
@@ -59,8 +72,8 @@
             </div>
         </div>
 
-        <!-- Вкладки -->
-        <div class="flex bg-slate-100 p-1 rounded-xl mb-4 gap-1 text-xs sm:text-sm font-bold">
+        <!-- Навигационные Вкладки -->
+        <div class="flex bg-slate-100/80 p-1 rounded-xl mb-4 gap-1 text-xs sm:text-sm font-bold">
             <button id="tab-reviews" onclick="switchTab('reviews')" class="flex-1 py-2 rounded-lg bg-white shadow-xs text-slate-900 transition-all">
                 ⭐ Отзывы
             </button>
@@ -75,8 +88,6 @@
         <!-- Вкладка 1: Отзывы -->
         <div id="content-reviews" class="space-y-4">
             <div id="reviews-container" class="space-y-4"></div>
-            
-            <!-- Кнопка Архива -->
             <div id="archive-button-container" class="hidden pt-2">
                 <button onclick="toggleArchive()" id="archive-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">
                     📦 Показать весь архив
@@ -87,14 +98,14 @@
         <!-- Вкладка 2: Заявки -->
         <div id="content-leads" class="hidden text-center py-12">
             <p class="text-4xl mb-2">📥</p>
-            <h3 class="font-bold text-slate-800 mb-1">Модуль «Заявки»</h3>
+            <h3 class="font-bold text-slate-800 mb-1" id="title-leads">Модуль «Заявки»</h3>
             <p class="text-xs text-slate-500 max-w-xs mx-auto">Скоро здесь будут лиды с форм</p>
         </div>
 
         <!-- Вкладка 3: Запись -->
         <div id="content-appointments" class="hidden text-center py-12">
             <p class="text-4xl mb-2">📆</p>
-            <h3 class="font-bold text-slate-800 mb-1">Модуль «Онлайн-запись»</h3>
+            <h3 class="font-bold text-slate-800 mb-1" id="title-app">Модуль «Онлайн-запись»</h3>
             <p class="text-xs text-slate-500 max-w-xs mx-auto">Скоро здесь будет календарь</p>
         </div>
 
@@ -104,10 +115,44 @@
         const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
         let allReviews = [];
         let showFullArchive = false;
+        let currentTab = 'reviews';
 
-        // Загрузка настроек пользователя
+        // Настройки хранения
         let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
         let retentionMonths = parseInt(localStorage.getItem('admin_retention')) || 6;
+
+        // Темы для каждой вкладки
+        let tabThemes = {
+            reviews: localStorage.getItem('theme_reviews') || 'blue',
+            leads: localStorage.getItem('theme_leads') || 'yellow',
+            appointments: localStorage.getItem('theme_appointments') || 'green'
+        };
+
+        // Цветовые пресеты (Задник страницы + Задник карточки + Цвета текста)
+        const themeStyles = {
+            white: { body: 'bg-slate-100', card: 'bg-white border-slate-200/80', text: 'text-slate-900' },
+            dark: { body: 'bg-slate-950', card: 'bg-slate-900 border-slate-800 text-white', text: 'text-white' },
+            blue: { body: 'bg-sky-100/70', card: 'bg-sky-50 border-sky-200/80', text: 'text-sky-950' },
+            yellow: { body: 'bg-amber-100/60', card: 'bg-amber-50/90 border-amber-200/80', text: 'text-amber-950' },
+            green: { body: 'bg-emerald-100/60', card: 'bg-emerald-50/90 border-emerald-200/80', text: 'text-emerald-950' }
+        };
+
+        function applyTheme(themeName) {
+            const body = document.getElementById('app-body');
+            const card = document.getElementById('app-card');
+            const title = document.getElementById('header-title');
+            
+            // Сбрасываем старые стили
+            body.className = `min-h-screen p-2 sm:p-6 font-sans antialiased pb-20 theme-transition ${themeStyles[themeName].body}`;
+            card.className = `max-w-2xl mx-auto rounded-2xl shadow-sm border p-4 sm:p-6 theme-transition ${themeStyles[themeName].card}`;
+            title.className = `text-xl font-black tracking-tight ${themeStyles[themeName].text}`;
+        }
+
+        function setTabTheme(themeName) {
+            tabThemes[currentTab] = themeName;
+            localStorage.setItem(`theme_${currentTab}`, themeName);
+            applyTheme(themeName);
+        }
 
         function toggleSettings() {
             const panel = document.getElementById('settings-panel');
@@ -129,38 +174,41 @@
         }
 
         function updateSettingsUI() {
-            // Подсветка кнопок лимита
+            const names = { reviews: '«Отзывы»', leads: '«Заявки»', appointments: '«Запись»' };
+            document.getElementById('current-tab-name').innerText = names[currentTab];
+
             [15, 20, 25].forEach(l => {
                 const btn = document.getElementById(`limit-${l}`);
-                if (l === displayLimit) {
-                    btn.className = 'flex-1 py-1.5 rounded-lg border-2 border-emerald-500 font-extrabold bg-emerald-50 text-emerald-800';
-                } else {
-                    btn.className = 'flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700';
-                }
+                btn.className = (l === displayLimit) 
+                    ? 'flex-1 py-1.5 rounded-lg border-2 border-emerald-500 font-extrabold bg-emerald-50 text-emerald-800'
+                    : 'flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700';
             });
 
-            // Подсветка кнопок хранения
             [3, 6, 12].forEach(r => {
                 const btn = document.getElementById(`ret-${r}`);
-                if (r === retentionMonths) {
-                    btn.className = 'flex-1 py-1.5 rounded-lg border-2 border-amber-500 font-extrabold bg-amber-50 text-amber-800';
-                } else {
-                    btn.className = 'flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700';
-                }
+                btn.className = (r === retentionMonths)
+                    ? 'flex-1 py-1.5 rounded-lg border-2 border-amber-500 font-extrabold bg-amber-50 text-amber-800'
+                    : 'flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700';
             });
         }
 
         function switchTab(tabName) {
+            currentTab = tabName;
+            
             document.getElementById('content-reviews').classList.add('hidden');
             document.getElementById('content-leads').classList.add('hidden');
             document.getElementById('content-appointments').classList.add('hidden');
 
             ['reviews', 'leads', 'appointments'].forEach(tab => {
-                document.getElementById(`tab-${tab}`).className = 'flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all';
+                document.getElementById(`tab-${tab}`).className = 'flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all font-bold';
             });
 
             document.getElementById(`content-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).className = 'flex-1 py-2 rounded-lg bg-white shadow-xs text-slate-900 font-extrabold transition-all';
+
+            // Включаем тему, закрепленную за этой вкладкой
+            applyTheme(tabThemes[tabName]);
+            updateSettingsUI();
         }
 
         async function loadReviews() {
@@ -187,7 +235,6 @@
                 return;
             }
 
-            // Ограничиваем список по лимиту пользователя
             const reviewsToDisplay = showFullArchive ? allReviews : allReviews.slice(0, displayLimit);
 
             if (allReviews.length > displayLimit) {
@@ -205,7 +252,7 @@
                 const reviewDiv = document.createElement('div');
                 
                 reviewDiv.className = `p-4 sm:p-5 rounded-xl border transition-all ${
-                    isApproved ? 'bg-slate-50/50 border-slate-200' : 'bg-amber-50/60 border-amber-200/80 shadow-sm'
+                    isApproved ? 'bg-white/80 border-slate-200/80' : 'bg-amber-50/90 border-amber-300/80 shadow-sm'
                 }`;
                 
                 let adminBlock = '';
@@ -216,7 +263,7 @@
                             ✓ Одобрить без ответа
                         </button>
                         <div class="flex flex-col sm:flex-row gap-2">
-                            <input type="text" id="reply-${review.id}" placeholder="Ваш ответ..." class="w-full border border-amber-300/80 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-base sm:text-sm">
+                            <input type="text" id="reply-${review.id}" placeholder="Ваш ответ..." class="w-full border border-amber-300/80 p-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white text-base sm:text-sm text-slate-800">
                             <button onclick="sendReply(${review.id})" class="w-full sm:w-auto bg-amber-500 text-white py-3 px-5 rounded-xl font-bold text-sm hover:bg-amber-600 transition-all shadow-sm active:bg-amber-700 whitespace-nowrap">
                                 Ответить
                             </button>
@@ -224,7 +271,7 @@
                     </div>`;
                 } else if (review.admin_answer) {
                     adminBlock = `
-                    <div class="mt-3 bg-white p-3 rounded-lg border-l-4 border-emerald-500 shadow-2xs">
+                    <div class="mt-3 bg-slate-50 p-3 rounded-lg border-l-4 border-emerald-500 shadow-2xs">
                         <p class="text-[10px] text-emerald-600 font-extrabold uppercase tracking-wider mb-0.5">Ответ Зеркала</p>
                         <p class="text-sm text-slate-700 font-medium">${review.admin_answer}</p>
                     </div>`;
@@ -296,8 +343,8 @@
             }
         }
 
-        // Старт
-        updateSettingsUI();
+        // Запуск
+        switchTab('reviews');
         loadReviews();
     </script>
 </body>
