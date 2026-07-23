@@ -12,7 +12,7 @@
 </head>
 <body id="app-body" class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20 theme-transition">
 
-    <!-- Главный контейнер -->
+    <!-- Главный контейнер (Полотно) -->
     <div id="app-card" class="max-w-2xl mx-auto rounded-2xl shadow-md border p-4 sm:p-6 theme-transition">
         
         <!-- Шапка с кнопкой Настроек -->
@@ -126,11 +126,11 @@
             appointments: localStorage.getItem('theme_appointments') || 'green'
         };
 
-        // Сочные и энергичные стили тем
+        // ИДЕАЛЬНО ИСПРАВЛЕННЫЕ И СОГЛАСОВАННЫЕ ЦВЕТОВЫЕ СТИЛИ
         const themeStyles = {
             white: { body: 'bg-slate-100', card: 'bg-white border-slate-200/80', text: 'text-slate-900' },
             dark: { body: 'bg-slate-950', card: 'bg-slate-900 border-slate-800 text-white', text: 'text-white' },
-            blue: { body: 'bg-sky-200/90', card: 'bg-white border-sky-300 shadow-sky-100', text: 'text-sky-950' },
+            blue: { body: 'bg-sky-200/90', card: 'bg-sky-50/90 border-sky-300 shadow-sky-100', text: 'text-sky-950' }, // ТЕПЕРЬ С НЕЖНО-ГОЛУБОЙ ПОДЛОЖКОЙ!
             yellow: { body: 'bg-amber-200/90', card: 'bg-amber-50/90 border-amber-300 shadow-amber-100', text: 'text-amber-950' },
             green: { body: 'bg-emerald-200/90', card: 'bg-emerald-50/90 border-emerald-300 shadow-emerald-100', text: 'text-emerald-950' }
         };
@@ -187,6 +187,7 @@
                     ? 'flex-1 py-1.5 rounded-lg border-2 border-amber-500 font-extrabold bg-amber-50 text-amber-800'
                     : 'flex-1 py-1.5 rounded-lg border font-bold bg-white text-slate-700';
             });
+         updateSettingsUI();
         }
 
         function switchTab(tabName) {
