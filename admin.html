@@ -13,24 +13,21 @@ input, textarea, select { font-size: 16px !important; }
 </head>
 <body id="app-body" class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20 theme-transition">
 
-<!-- ================= 🖥️ ОСНОВНАЯ АДМИНКА ================= -->
 <div id="app-card" class="max-w-2xl mx-auto rounded-2xl shadow-md border p-4 sm:p-6 theme-transition">
 
-    <!-- Шапка -->
     <div class="flex items-center justify-between pb-3 mb-3 border-b border-black/10">
         <div class="flex items-center gap-2">
             <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shadow-sm"></div>
             <h1 id="header-title" class="text-xl font-black tracking-tight text-slate-900">Модератор 🛡️</h1>
         </div>
         <div class="flex items-center gap-2">
-            <button onclick="goToOwner()" class="px-3 py-2 bg-black/5 hover:bg-black/10 text-slate-700 rounded-xl text-xs font-bold transition-all active:bg-black/20" title="На главный экран">🏠</button>
-            <button id="settings-gear" onclick="toggleSettings()" class="p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Настройки">⚙️</button>
-            <span class="bg-amber-400/30 text-amber-950 px-2.5 py-1 rounded-xl text-xs font-black tracking-wide uppercase shadow-2xs">PRO</span>
+            <button onclick="window.location.href='owner.html'" class="px-3 py-2 bg-black/5 hover:bg-black/10 text-slate-700 rounded-xl text-xs font-bold transition-all active:bg-black/20" title="На главный экран">🏠</button>
+            <button onclick="toggleSettings()" class="p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Настройки">⚙️</button>
+            <span class="bg-amber-400/30 text-amber-950 px-2.5 py-1 rounded-xl text-xs font-black tracking-wide uppercase">PRO</span>
         </div>
     </div>
 
-    <!-- Панель Настроек -->
-    <div id="settings-panel" class="hidden mb-4 p-4 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-300 text-xs space-y-4 shadow-lg">
+    <div id="settings-panel" class="hidden mb-4 p-4 bg-white/90 rounded-2xl border border-slate-300 text-xs space-y-4 shadow-lg">
         <div class="flex justify-between items-center border-b pb-2">
             <span class="font-extrabold text-slate-800 text-sm">⚙️ Настройки и Палитра</span>
             <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600">✕ Закрыть</button>
@@ -63,14 +60,12 @@ input, textarea, select { font-size: 16px !important; }
         </div>
     </div>
 
-    <!-- Вкладки -->
     <div class="flex bg-black/5 p-1 rounded-xl mb-4 gap-1 text-xs sm:text-sm font-bold">
         <button id="tab-reviews" onclick="switchTab('reviews')" class="flex-1 py-2 rounded-lg bg-white shadow-xs text-slate-900 transition-all">⭐ Отзывы</button>
         <button id="tab-leads" onclick="switchTab('leads')" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all">📩 Заявки</button>
         <button id="tab-appointments" onclick="switchTab('appointments')" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 transition-all">📅 Запись</button>
     </div>
 
-    <!-- Отзывы -->
     <div id="content-reviews" class="space-y-4">
         <div id="reviews-container" class="space-y-4"></div>
         <div id="archive-button-container" class="hidden pt-2">
@@ -111,8 +106,6 @@ input, textarea, select { font-size: 16px !important; }
         yellow: { body: 'bg-amber-200/90', card: 'bg-amber-50/90 border-amber-300 shadow-amber-100', text: 'text-amber-950' },
         green: { body: 'bg-emerald-200/90', card: 'bg-emerald-50/90 border-emerald-300 shadow-emerald-100', text: 'text-emerald-950' }
     };
-
-    function goToOwner() { window.location.href = 'owner.html'; }
 
     function esc(s) {
         return String(s ?? '').replace(/[&<>"']/g, c =>
@@ -243,174 +236,83 @@ input, textarea, select { font-size: 16px !important; }
                 <div class="mt-3 space-y-2">
                     <div class="hidden" id="reply-edit-${review.id}">
                         <textarea id="reply-${review.id}" rows="2" placeholder="Напишите ответ клиенту..." class="w-full text-sm border-2 border-slate-300 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800"></textarea>
-                    </div>
-                    <div class="flex gap-2" id="reply-actions-${review.id}">
-                        <button onclick="approveReview(${review.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold text-xs">✅ Одобрить</button>
-                        <button onclick="toggleReplyBox(${review.id})" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-xl font-bold text-xs">💬 Ответить</button>
-                        <button onclick="deleteReview(${review.id})" class="px-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-bold text-xs">🗑️</button>
-                    </div>
-                </div>` : `
-                <div class="mt-3 space-y-2">
-                    <div class="hidden" id="reply-edit-${review.id}">
-                        <textarea id="reply-${review.id}" rows="2" placeholder="Измените ответ..." class="w-full text-sm border-2 border-slate-300 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800">${esc(review.admin_answer || '')}</textarea>
                         <div class="flex gap-2 mt-2">
-                            <button onclick="sendReply(${review.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold text-xs">💾 Сохранить</button>
+                            <button onclick="sendReply(${review.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold text-xs">💾 Отправить</button>
                             <button onclick="toggleReplyBox(${review.id})" class="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-xl font-bold text-xs">Отмена</button>
                         </div>
                     </div>
                     <div class="flex gap-2" id="reply-actions-${review.id}">
-                        <button onclick="toggleReplyBox(${review.id})" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl font-bold text-xs border border-slate-300">✏️ ${hasAnswer ? 'Изменить ответ' : 'Добавить ответ'}</button>
-                        <button onclick="deleteReview(${review.id})" class="px-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-bold text-xs">🗑️</button>
+                        <button onclick="approveReview(${review.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold text-xs">✅ Одобрить</button>
+                        <button onclick="toggleReplyBox(${review.id})" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-xl font-bold text-xs">💬 Ответить</button>
+                        <button onclick="deleteReview(${review.id})" class="px-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-bold text-xs">
+🗑️</button>
                     </div>
+                </div>` : `
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-[10px] font-black text-emerald-700 uppercase tracking-wide">✅ Опубликован</span>
+                    <button onclick="deleteReview(${review.id})" class="px-3 bg-red-500 hover:bg-red-600 text-white py-1.5 rounded-xl font-bold text-xs">🗑️ Удалить</button>
                 </div>`;
-            const statusBadge = isPending
-                ? `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase">⏳ Ожидает</span>`
-                : `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase">✅ Одобрен</span>`;
+
             card.innerHTML = `
                 <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                        <p class="font-black text-slate-900 truncate">${esc(review.author_name)}</p>
+                        <p class="font-black text-slate-900 truncate">${esc(review.name || 'Аноним')}</p>
                         <p class="text-amber-500 text-sm leading-none mt-0.5">${stars(review.rating)}</p>
                     </div>
-                    <div class="text-right flex-shrink-0">
-                        ${statusBadge}
-                        <p class="text-[10px] text-slate-400 mt-1" title="${fullDate(review.created_at)}">${prettyDate(review.created_at)}</p>
-                    </div>
+                    <span class="text-[10px] text-slate-400 whitespace-nowrap" title="${fullDate(review.created_at)}">${prettyDate(review.created_at)}</span>
                 </div>
                 <p class="text-sm text-slate-700 mt-2 whitespace-pre-wrap break-words">${esc(review.text)}</p>
-                ${answerBlock}${actionsBlock}`;
+                ${answerBlock}
+                ${actionsBlock}`;
             container.appendChild(card);
         });
     }
+
     function toggleReplyBox(id) {
-        const e = document.getElementById(`reply-edit-${id}`);
-        if (!e) return;
-        const open = e.classList.contains('hidden');
-        e.classList.toggle('hidden');
-        if (open) { const t = document.getElementById(`reply-${id}`); if (t) t.focus(); }
+        const box = document.getElementById(`reply-edit-${id}`);
+        const actions = document.getElementById(`reply-actions-${id}`);
+        if (!box) return;
+        box.classList.toggle('hidden');
+        if (actions) actions.classList.toggle('hidden');
+        if (!box.classList.contains('hidden')) {
+            const ta = document.getElementById(`reply-${id}`);
+            if (ta) ta.focus();
+        }
     }
-    function toggleArchive() { showFullArchive = !showFullArchive; renderReviews(
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Модератор PRO — Владелец</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-button:active { transform: scale(0.98); }
-.theme-transition { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
-.font-title { font-family: 'Playfair Display', serif; }
-.font-body { font-family: 'Manrope', sans-serif; }
-.plate { transition: transform .18s ease, box-shadow .18s ease; }
-.plate:hover { transform: translateY(-2px); }
-</style>
-</head>
-<body id="app-body" class="bg-slate-100 min-h-screen p-4 sm:p-6 font-body text-slate-800 antialiased theme-transition">
 
-<div id="app-card" class="max-w-md mx-auto mt-6 rounded-3xl shadow-md border p-6 sm:p-8 theme-transition">
-
-    <!-- Шапка: название + шестерёнка -->
-    <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-2">
-            <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shadow-sm"></div>
-            <h1 id="brand-title" class="text-lg font-extrabold tracking-tight text-slate-900">Модератор <span class="text-amber-500">PRO</span></h1>
-        </div>
-        <button id="settings-gear" onclick="toggleSettings()" class="p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Настройки">⚙️</button>
-    </div>
-
-    <!-- Панель настроек (темы) -->
-    <div id="settings-panel" class="hidden mb-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-300 text-xs space-y-3 shadow-lg">
-        <div class="flex justify-between items-center border-b pb-2">
-            <span class="font-extrabold text-slate-800 text-sm">⚙️ Тема оформления</span>
-            <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600">✕ Закрыть</button>
-        </div>
-        <div class="grid grid-cols-5 gap-1.5 text-center">
-            <button onclick="setOwnerTheme('white')" class="p-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 font-bold text-[10px]">⚪ Белая</button>
-            <button onclick="setOwnerTheme('dark')" class="p-2 rounded-xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-[10px]">🌙 Тёмная</button>
-            <button onclick="setOwnerTheme('blue')" class="p-2 rounded-xl border-2 border-sky-400 bg-sky-300 text-sky-950 font-black text-[10px]">🩵 Голубой</button>
-            <button onclick="setOwnerTheme('yellow')" class="p-2 rounded-xl border-2 border-amber-400 bg-amber-300 text-amber-950 font-black text-[10px]">💛 Желтый</button>
-            <button onclick="setOwnerTheme('green')" class="p-2 rounded-xl border-2 border-emerald-400 bg-emerald-300 text-emerald-950 font-black text-[10px]">💚 Мята</button>
-        </div>
-    </div>
-
-    <!-- Надпись Владелец -->
-    <div class="text-center mb-7">
-        <p id="owner-word" class="font-title text-4xl sm:text-5xl font-black tracking-tight text-slate-900">Владелец</p>
-        <div class="mx-auto mt-2 w-16 h-[3px] rounded-full bg-amber-400"></div>
-    </div>
-
-    <!-- Плашки -->
-    <div class="space-y-3">
-        <!-- Админка -->
-        <button onclick="goTo('admin.html')" class="plate w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md text-left">
-            <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-100 text-2xl">🛡️</div>
-            <div class="flex-1">
-                <p class="font-extrabold text-slate-900">Админка</p>
-                <p class="text-xs text-slate-500">Отзывы, заявки, запись</p>
-            </div>
-            <span class="text-slate-300 text-xl">›</span>
-        </button>
-
-        <!-- Архив -->
-        <button onclick="goTo('archive.html')" class="plate w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md text-left">
-            <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-amber-100 text-2xl">📦</div>
-            <div class="flex-1">
-                <p class="font-extrabold text-slate-900">Архив</p>
-                <p class="text-xs text-slate-500">История и хранилище</p>
-            </div>
-            <span class="text-slate-300 text-xl">›</span>
-        </button>
-
-        <!-- Роли для сотрудников -->
-        <button onclick="goTo('roles.html')" class="plate w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md text-left">
-            <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-indigo-100 text-2xl">👥</div>
-            <div class="flex-1">
-                <p class="font-extrabold text-slate-900">Роли для сотрудников</p>
-                <p class="text-xs text-slate-500">Доступы и статусы команды</p>
-            </div>
-            <span class="text-slate-300 text-xl">›</span>
-        </button>
-    </div>
-
-    <p class="text-center text-[10px] text-slate-400 mt-7 tracking-wide uppercase">Модератор PRO • Панель владельца</p>
-</div>
-
-<script>
-    // Единая тема с админкой: используем те же ключи localStorage
-    const themeStyles = {
-        white: { body: 'bg-slate-100', card: 'bg-white border-slate-200/80', text: 'text-slate-900' },
-        dark: { body: 'bg-slate-950', card: 'bg-slate-900 border-slate-800 text-white', text: 'text-white' },
-        blue: { body: 'bg-sky-200/90', card: 'bg-sky-50/90 border-sky-300 shadow-sky-100', text: 'text-sky-950' },
-        yellow: { body: 'bg-amber-200/90', card: 'bg-amber-50/90 border-amber-300 shadow-amber-100', text: 'text-amber-950' },
-        green: { body: 'bg-emerald-200/90', card: 'bg-emerald-50/90 border-emerald-300 shadow-emerald-100', text: 'text-emerald-950' }
-    };
-
-    let ownerTheme = localStorage.getItem('theme_owner') || 'white';
-
-    function applyTheme(t) {
-        const s = themeStyles[t] || themeStyles.white;
-        document.getElementById('app-body').className =
-            `min-h-screen p-4 sm:p-6 font-body antialiased theme-transition ${s.body}`;
-        document.getElementById('app-card').className =
-            `max-w-md mx-auto mt-6 rounded-3xl shadow-md border p-6 sm:p-8 theme-transition ${s.card}`;
-        document.getElementById('owner-word').className =
-            `font-title text-4xl sm:text-5xl font-black tracking-tight ${s.text}`;
-        document.getElementById('brand-title').className =
-            `text-lg font-extrabold tracking-tight ${s.text}`;
+    function toggleArchive() {
+        showFullArchive = !showFullArchive;
+        renderReviews();
     }
-    function setOwnerTheme(t) {
-        ownerTheme = t;
-        localStorage.setItem('theme_owner', t);
-        applyTheme(t);
-    }
-    function toggleSettings() {
-        document.getElementById('settings-panel').classList.toggle('hidden');
-    }
-    function goTo(page) { window.location.href = page; }
 
-    window.addEventListener('DOMContentLoaded', () => applyTheme(ownerTheme));
+    async function approveReview(id) {
+        try {
+            const r = await fetch(`${API_URL}/api/reviews/${id}/approve`, { method:'PUT', headers:{'ngrok-skip-browser-warning':'true'} });
+            await handleAdminResponse(r);
+        } catch(e){ alert('❌ Ошибка сети'); }
+    }
+    async function sendReply(id) {
+        const t = document.getElementById(`reply-${id}`);
+        const a = t ? t.value.trim() : '';
+        if (!a) { alert('Напишите текст ответа'); return; }
+        try {
+            const r = await fetch(`${API_URL}/api/reviews/${id}/reply`, { method:'PUT', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'}, body: JSON.stringify({admin_answer:a}) });
+            await handleAdminResponse(r);
+        } catch(e){ alert('❌ Ошибка сети'); }
+    }
+    async function deleteReview(id) {
+        if (!confirm('Удалить этот отзыв навсегда?')) return;
+        try {
+            const r = await fetch(`${API_URL}/api/reviews/${id}`, { method:'DELETE', headers:{'ngrok-skip-browser-warning':'true'} });
+            await handleAdminResponse(r);
+        } catch(e){ alert('❌ Ошибка сети'); }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        switchTab('reviews');
+        loadReviews();
+        setInterval(autoRefresh, 30000);
+    });
 </script>
 </body>
 </html>
