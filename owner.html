@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Панель владельца</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+button:active { transform: scale(0.97); }
+input, select { font-size: 16px !important; }
+</style>
+</head>
+<body class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20">
+
+<div id="guard" class="max-w-sm mx-auto mt-24 text-center hidden">
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+        <div class="text-5xl mb-3">🔒</div>
+        <h1 class="text-lg font-black text-slate-900 mb-1">Доступ только для владельца</h1>
+        <p class="text-xs text-slate-500 mb-5">Войдите под кодом владельца</p>
+        <a href="admin.html" class="inline-block w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold">← На страницу входа</a>
+    </div>
+</div>
+
+<div id="owner-app" class="hidden max-w-2xl mx-auto bg-white rounded-2xl shadow-md border border-slate-200 p-4 sm:p-6">
+    <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+            <div class="text-2xl">🏠</div>
+            <h1 class="text-xl font-black text-slate-900">Панель владельца</h1>
+        </div>
+        <a href="admin.html" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">← В админку</a>
+    </div>
+
+    <!-- Форма добавления сотрудника -->
+    <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 mb-5">
+        <p class="font-black text-indigo-900 text-sm mb-3">➕ Добавить сотрудника</p>
+        <div class="space-y-2">
+            <input id="new-name" placeholder="Имя сотрудника" class="w-full border-2 border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input id="new-code" inputmode="numeric" placeholder="Код доступа (например 1234)" class="w-full border-2 border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select id="new-role" class="w-full border-2 border-slate-300 rounded-xl p-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                <option value="admin">Роль: Администратор</option>
+                <option value="owner">Роль: Владелец</option>
+            </select>
+            <button onclick="addUser()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold">Добавить</button>
+            <p id="add-error" class="hidden text-red-500 text-xs font-bold"></p>
+        </div>
+    </div>
+
+    <p class="font-black text-slate-800 text-sm mb-3">👥 Сотрудники</p>
+    <div id="users-list" class="space-y-3"></div>
+</div>
+
+<script>
+    const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
+    const WORK_STATUSES = {
+        working: { label: '🟢 Работает', cls: 'bg-emerald-100 text-emerald-800' },
+        dayoff:  { label: '⚪ Выходной', cls: 'bg-slate-200 text-slate-700' },
+        sick:    { label: '🤒 Болеет',  cls: 'bg-amber-100 text-amber-800' },
+        vacation:{ label: '🏖️ Отпуск',  cls: 'bg-sky-100 text-sky-800' }
+    };
+
+    function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+    function guard() {
+        const role = sessionStorage.getItem('session_role');
+        if (role !== 'owner') {
+            document.getElementById('guard').classList.remove('hidden');
+            return false;
+        }
+        document.getElementById('owner-app').classList.remove('hidden');
+        return true;
+    }
+
+    async function loadUsers() {
+        try {
+            const res = await fetch(`${API_URL}/api/users`, { headers:{'ngrok-skip-browser-warning':'true'} });
+            const users = await res.json();
+            renderUsers(users);
+        } catch(e){ console.error(e); }
+    }
+
+    function renderUsers(users) {
+        const box = document.getElementById('users-list');
+        box.innerHTML = '';
+        users.forEach(u => {
+            const isOwner = u.role === 'owner';
+            const ws = WORK_STATUSES[u.work_status] || WORK_STATUSES.working;
+            const disabled = u.access_status !== 'active';
+            const card = document.createElement('div');
+            card.className = 'border border-slate-200 rounded-2xl p-4 ' + (disabled ? 'bg-slate-50 opacity-70' : 'bg-white');
+
+            const statusButtons = Object.entries(WORK_STATUSES).map(([key,val]) =>
+                `<button onclick="setWork(${u.id},'${key}')" class="px-2 py-1 rounded-lg text-[11px] font-bold ${u.work_status===key ? val.cls+' ring-2 ring-offset-1 ring-slate-400' : 'bg-slate-100 text-slate-500'}">${val.label}</button>`
+            ).join('');
+
+            card.innerHTML = `
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <p class="font-black text-slate-900">${esc(u.name)} ${isOwner ? '👑' : ''}</p>
+                        <p class="text-[11px] text-slate-500">Роль: ${isOwner ? 'Владелец' : 'Администратор'} · Код: <b>${esc(u.access_code)}</b></p>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${ws.cls}">${ws.label}</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5 mt-3">${statusButtons}</div>
+                <div class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                    ${isOwner ? '<span class="text-[11px] text-slate-400 italic py-1">Владельца изменить нельзя</span>' : `
+                        <button onclick="toggleAccess(${u.id}, ${disabled})" class="flex-1 py-2 rounded-xl font-bold text-xs ${disabled ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-amber-100 text-amber-800 hover:bg-amber-200'}">${disabled ? '🔓 Открыть доступ' : '🔒 Закрыть доступ'}</button>
+                        <button onclick="removeUser(${u.id})" class="px-3 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold text-xs">🗑️</button>
+                    `}
+                </div>`;
+            box.appendChild(card);
+        });
+    }
+
+    async function addUser() {
+        const name = document.getElementById('new-name').value.trim();
+        const code = document.getElementById('new-code').value.trim();
+        const role = document.getElementById('new-role').value;
+        const err = document.getElementById('add-error');
+        err.classList.add('hidden');
+        if (!name || !code) { err.innerText='Заполните имя и код'; err.classList.remove('hidden'); return; }
+        try {
+            const res = await fetch(`${API_URL}/api/users`, {
+                method:'POST',
+                headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'},
+                body: JSON.stringify({ name, access_code: code, role })
+            });
+            if (!res.ok) { const e = await res.json().catch(()=>({})); err.innerText = e.detail || 'Ошибка'; err.classList.remove('hidden'); return; }
+            document.getElementById('new-name').value='';
+            document.getElementById('new-code').value='';
+            loadUsers();
+        } catch(e){ err.innerText='Ошибка сети'; err.classList.remove('hidden'); }
+    }
+
+    async function setWork(id, status) {
+        try { await fetch(`${API_URL}/api/users/${id}/work-status`, { method:'PUT', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'}, body: JSON.stringify({work_status:status}) }); loadUsers(); }
+        catch(e){ alert('❌ Ошибка сети'); }
+    }
+
+    async function toggleAccess(id, isDisabled) {
+        const newStatus = isDisabled ? 'active' : 'disabled';
+        try {
+            const res = await fetch(`${API_URL}/api/users/${id}/access-status`, { method:'PUT', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'}, body: JSON.stringify({access_status:newStatus}) });
+            if (!res.ok){ const e=await res.json().catch(()=>({})); alert('❌ '+(e.detail||'Ошибка')); return; }
+            loadUsers();
+        } catch(e){ alert('❌ Ошибка сети'); }
+    }
+
+    async function removeUser(id) {
+        if (!confirm('Удалить сотрудника?')) return;
+        try {
+            const res = await fetch(`${API_URL}/api/users/${id}`, { method:'DELETE', headers:{'ngrok-skip-browser-warning':'true'} });
+            if (!res.ok){ const e=await res.json().catch(()=>({})); alert('❌ '+(e.detail||'Ошибка')); return; }
+            loadUsers();
+        } catch(e){ alert('❌ Ошибка сети'); }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (guard()) loadUsers();
+    });
+</script>
+</body>
+</html>
