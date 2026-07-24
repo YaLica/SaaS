@@ -10,13 +10,18 @@
         .active-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
         .active-scale:active { transform: scale(0.96); }
         .theme-transition { transition: background-color 0.3s ease, color 0.3s ease; }
+        
+        /* Плавное появление архива */
+        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+        .fade-out { animation: fadeOut 0.2s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
     </style>
 </head>
-<!-- Убрали центрирование. Теперь контент растянут на весь экран -->
 <body id="app-body" class="bg-slate-50 min-h-screen text-slate-900 font-sans antialiased theme-transition pb-12">
 
-    <!-- Основной полноэкранный контейнер -->
-    <div class="w-full h-full px-5 sm:px-8 pt-8 sm:pt-12">
+    <!-- ОСНОВНОЙ ЭКРАН ХАБА -->
+    <div id="main-hub" class="w-full h-full px-5 sm:px-8 pt-8 sm:pt-12">
         
         <!-- Верхний бар -->
         <div class="flex items-center justify-between mb-10">
@@ -36,7 +41,7 @@
             </button>
         </div>
 
-        <!-- ПАНЕЛЬ НАСТРОЕК (Скрытая, выезжает сверху) -->
+        <!-- ПАНЕЛЬ НАСТРОЕК -->
         <div id="settings-panel" class="hidden mb-8 p-5 bg-white rounded-3xl border border-slate-200 shadow-xl text-xs space-y-6">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <span class="font-extrabold text-slate-800 text-sm tracking-wide uppercase">Настройки системы</span>
@@ -67,27 +72,25 @@
         <!-- Сетка модулей -->
         <div class="flex flex-col gap-4">
             
-            <!-- ГЛАВНЫЙ МОДУЛЬ (АДМИНКА) - Огромная кнопка -->
+            <!-- ГЛАВНЫЙ МОДУЛЬ (АДМИНКА) -->
             <button onclick="window.location.href='admin.html'" class="active-scale w-full text-left bg-slate-900 text-white rounded-[2rem] p-6 shadow-2xl shadow-slate-900/20 relative overflow-hidden flex items-center justify-between border border-slate-800">
                 <div class="relative z-10">
                     <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-3">Главный модуль</span>
                     <h2 class="text-2xl font-black tracking-tight mb-1">Рабочая панель</h2>
                     <p class="text-sm font-medium text-slate-400">Модерация, отзывы, заявки</p>
                 </div>
-                <div class="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md relative z-10 text-white text-2xl font-light">
-                    ›
-                </div>
-                <!-- Декоративный круг -->
+                <div class="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md relative z-10 text-white text-2xl font-light">›</div>
                 <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
             </button>
 
-            <div class="h-4"></div> <!-- Разделитель -->
+            <div class="h-4"></div>
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2 mb-1">Инструменты бизнеса</p>
 
-            <!-- ВТОРОСТЕПЕННЫЕ МОДУЛИ (Список в стиле iOS) -->
+            <!-- ВТОРОСТЕПЕННЫЕ МОДУЛИ -->
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
                 
-                <button onclick="alert('Модуль Архива спроектирован и ждет реализации (Этап 7)')" class="active-scale w-full flex items-center justify-between p-5 border-b border-slate-100 bg-white hover:bg-slate-50 transition-colors">
+                <!-- КНОПКА АРХИВА (Теперь открывает Сейф) -->
+                <button onclick="toggleArchive(true)" class="active-scale w-full flex items-center justify-between p-5 border-b border-slate-100 bg-white hover:bg-slate-50 transition-colors">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">📦</div>
                         <div class="text-left">
@@ -98,6 +101,7 @@
                     <span class="text-slate-300 text-2xl font-light">›</span>
                 </button>
 
+                <!-- КНОПКА ПЕРСОНАЛА -->
                 <button onclick="alert('Модуль Управления Персоналом ждет ваших сценариев (Этап 8)')" class="active-scale w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">👥</div>
@@ -109,15 +113,103 @@
                     <span class="text-slate-300 text-2xl font-light">›</span>
                 </button>
             </div>
-
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- НОВЫЙ ЭКРАН: СЕЙФ-АРХИВ (Всплывает поверх) -->
+    <!-- ========================================== -->
+    <div id="archive-screen" class="hidden fixed inset-0 z-50 overflow-y-auto pb-12 bg-slate-50/95 backdrop-blur-xl font-sans text-slate-900">
+        
+        <!-- Шапка -->
+        <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+            <button onclick="toggleArchive(false)" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+                <span class="text-xl leading-none -mt-1">‹</span> Назад
+            </button>
+            <h1 class="text-lg font-black text-slate-800 tracking-tight">Сейф-Архив</h1>
+            <div class="w-16"></div> <!-- Распорка для центрирования -->
+        </div>
+
+        <div class="px-5 pt-6">
+            <!-- ⏳ АВТООЧИСТКА ДАННЫХ -->
+            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Срок хранения (Автоочистка)</h2>
+            <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/60 mb-8">
+                <div class="flex justify-between gap-2">
+                    <button onclick="setRetention(3)" id="ret-3" class="flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all">3 мес</button>
+                    <button onclick="setRetention(6)" id="ret-6" class="flex-1 py-3 rounded-2xl text-xs font-black bg-slate-900 text-white shadow-md transition-all">6 мес</button>
+                    <button onclick="setRetention(12)" id="ret-12" class="flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all">12 мес</button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-4 text-center leading-tight">
+                    За 3 дня до удаления система пришлет уведомление.<br>Несгораемые элементы удалены не будут.
+                </p>
+            </div>
+
+            <!-- 📁 РАЗДЕЛЫ АРХИВА -->
+            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">База данных</h2>
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden mb-8">
+                
+                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">📄</span>
+                        <span class="text-base font-bold text-slate-800">Отзывы</span>
+                    </div>
+                    <span class="text-slate-300 text-xl font-light">›</span>
+                </button>
+
+                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">📥</span>
+                        <span class="text-base font-bold text-slate-800">Заявки</span>
+                    </div>
+                    <span class="text-slate-300 text-xl font-light">›</span>
+                </button>
+
+                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">📅</span>
+                        <span class="text-base font-bold text-slate-800">Записи</span>
+                    </div>
+                    <span class="text-slate-300 text-xl font-light">›</span>
+                </button>
+
+                <!-- Юридический раздел -->
+                <button class="w-full flex items-center justify-between px-5 py-4 active:bg-slate-50 transition-colors bg-slate-50/50">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">⚖️</span>
+                        <div class="text-left">
+                            <div class="text-base font-black text-slate-900">Рабочее время</div>
+                            <div class="text-[11px] font-medium text-slate-500">Логи смен сотрудников</div>
+                        </div>
+                    </div>
+                    <span class="text-slate-300 text-xl font-light">›</span>
+                </button>
+            </div>
+
+            <!-- ⭐️ ЗОЛОТОЙ ФОНД -->
+            <h2 class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 ml-2">Золотой фонд</h2>
+            <div class="bg-gradient-to-b from-amber-50 to-white rounded-3xl shadow-sm border border-amber-200/60 overflow-hidden">
+                <button class="w-full flex items-center justify-between px-5 py-4 active:bg-amber-100/50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <span class="text-xl">⭐️</span>
+                        <div class="text-left">
+                            <div class="text-base font-black text-amber-950">Сохранённые</div>
+                            <div class="text-[11px] font-medium text-amber-700/70">Избранное. Хранится вечно.</div>
+                        </div>
+                    </div>
+                    <span class="text-amber-300 text-xl font-light">›</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- СКРИПТЫ -->
+    <!-- ========================================== -->
     <script>
+        // --- СТАРЫЕ СКРИПТЫ ДЛЯ ТЕМ И НАСТРОЕК ---
         let currentTheme = localStorage.getItem('theme_reviews') || 'white';
         let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
 
-        // Так как экран на 100%, цвета применяются прямо к body
         const themeStyles = {
             white: { body: 'bg-slate-50', text: 'text-slate-900' },
             dark: { body: 'bg-slate-950', text: 'text-white' },
@@ -129,7 +221,6 @@
         function applyTheme(themeName) {
             const body = document.getElementById('app-body');
             const title = document.getElementById('header-title');
-            
             body.className = `min-h-screen font-sans antialiased theme-transition pb-12 ${themeStyles[themeName].body}`;
             title.className = `text-3xl font-black tracking-tight flex items-center gap-2 ${themeStyles[themeName].text}`;
         }
@@ -165,6 +256,35 @@
         window.addEventListener('DOMContentLoaded', () => {
             applyTheme(currentTheme);
         });
+
+        // --- НОВЫЕ СКРИПТЫ ДЛЯ АРХИВА ---
+        function toggleArchive(show) {
+            const archiveScreen = document.getElementById('archive-screen');
+            const mainHub = document.getElementById('main-hub');
+            
+            if (show) {
+                archiveScreen.classList.remove('hidden', 'fade-out');
+                archiveScreen.classList.add('fade-in');
+                mainHub.style.display = 'none'; // Скрываем основной хаб для производительности
+            } else {
+                archiveScreen.classList.remove('fade-in');
+                archiveScreen.classList.add('fade-out');
+                mainHub.style.display = 'block'; 
+                setTimeout(() => archiveScreen.classList.add('hidden'), 200); // Ждем конец анимации
+            }
+        }
+
+        function setRetention(months) {
+            [3, 6, 12].forEach(m => {
+                const btn = document.getElementById(`ret-${m}`);
+                if (m === months) {
+                    btn.className = 'flex-1 py-3 rounded-2xl text-xs font-black bg-slate-900 text-white shadow-md transition-all';
+                } else {
+                    btn.className = 'flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all';
+                }
+            });
+            // Здесь в будущем будет логика сохранения в localStorage или БД
+        }
     </script>
 </body>
 </html>
