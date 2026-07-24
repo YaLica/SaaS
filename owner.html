@@ -2,141 +2,140 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Модератор PRO — Панель Владельца</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Управление PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .active-scale { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        body { -webkit-tap-highlight-color: transparent; }
+        .active-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
         .active-scale:active { transform: scale(0.96); }
-        .theme-transition { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+        .theme-transition { transition: background-color 0.3s ease, color 0.3s ease; }
     </style>
 </head>
-<body id="app-body" class="bg-slate-100 min-h-screen p-3 sm:p-6 font-sans text-slate-800 antialiased flex flex-col items-center justify-center pb-20 theme-transition">
+<!-- Убрали центрирование. Теперь контент растянут на весь экран -->
+<body id="app-body" class="bg-slate-50 min-h-screen text-slate-900 font-sans antialiased theme-transition pb-12">
 
-    <div id="app-card" class="w-full max-w-md bg-white rounded-[2rem] shadow-xl border border-slate-200/60 p-6 sm:p-8 theme-transition relative overflow-hidden">
+    <!-- Основной полноэкранный контейнер -->
+    <div class="w-full h-full px-5 sm:px-8 pt-8 sm:pt-12">
         
-        <!-- Декоративный блик на фоне -->
-        <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/5 to-transparent pointer-events-none"></div>
-
-        <!-- Шапка с шестерёнкой -->
-        <div class="flex items-center justify-between pb-5 mb-6 border-b border-black/5 relative z-10">
-            <div class="flex items-center gap-2.5">
-                <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shadow-sm ring-4 ring-emerald-500/20"></div>
-                <h1 id="header-title" class="text-xl font-black tracking-tight text-slate-900 flex items-center gap-1.5">
-                    Модератор
-                    <span class="bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 px-2 py-0.5 rounded-lg text-[10px] shadow-sm uppercase tracking-widest">PRO</span>
+        <!-- Верхний бар -->
+        <div class="flex items-center justify-between mb-10">
+            <div>
+                <h1 id="header-title" class="text-3xl font-black tracking-tight flex items-center gap-2">
+                    Управление
+                    <span class="bg-slate-900 text-white px-2 py-0.5 rounded-lg text-[11px] uppercase tracking-widest font-bold">PRO</span>
                 </h1>
+                <div class="flex items-center gap-1.5 mt-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">Сервер активен</p>
+                </div>
             </div>
             
-            <button onclick="toggleSettings()" class="p-2.5 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20 shadow-sm" title="Настройки системы">
-                ⚙️
+            <button onclick="toggleSettings()" class="w-12 h-12 flex items-center justify-center bg-black/5 hover:bg-black/10 rounded-2xl transition-colors active:bg-black/20" title="Настройки">
+                <span class="text-2xl">⚙️</span>
             </button>
         </div>
 
-        <!-- ПАНЕЛЬ НАСТРОЕК (Скрытая) -->
-        <div id="settings-panel" class="hidden mb-8 p-5 bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-200 text-xs space-y-5 shadow-2xl relative z-20">
+        <!-- ПАНЕЛЬ НАСТРОЕК (Скрытая, выезжает сверху) -->
+        <div id="settings-panel" class="hidden mb-8 p-5 bg-white rounded-3xl border border-slate-200 shadow-xl text-xs space-y-6">
             <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <span class="font-extrabold text-slate-800 text-sm">⚙️ Настройки Системы</span>
-                <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600 px-2 py-1 bg-slate-100 rounded-lg">✕</button>
+                <span class="font-extrabold text-slate-800 text-sm tracking-wide uppercase">Настройки системы</span>
+                <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600 text-lg px-2">✕</button>
             </div>
             
             <div>
-                <label class="block font-bold text-slate-700 mb-2.5">Цветовая тема платформы:</label>
+                <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Цветовая тема</label>
                 <div class="grid grid-cols-5 gap-2 text-center">
-                    <button onclick="setGlobalTheme('white')" class="p-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-[10px] shadow-sm hover:border-slate-300 transition-all">⚪</button>
-                    <button onclick="setGlobalTheme('dark')" class="p-2.5 rounded-xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-[10px] shadow-sm hover:border-slate-600 transition-all">🌙</button>
-                    <button onclick="setGlobalTheme('blue')" class="p-2.5 rounded-xl border-2 border-sky-300 bg-sky-100 text-sky-950 font-black text-[10px] shadow-sm hover:border-sky-400 transition-all">🩵</button>
-                    <button onclick="setGlobalTheme('yellow')" class="p-2.5 rounded-xl border-2 border-amber-300 bg-amber-100 text-amber-950 font-black text-[10px] shadow-sm hover:border-amber-400 transition-all">💛</button>
-                    <button onclick="setGlobalTheme('green')" class="p-2.5 rounded-xl border-2 border-emerald-300 bg-emerald-100 text-emerald-950 font-black text-[10px] shadow-sm hover:border-emerald-400 transition-all">💚</button>
+                    <button onclick="setGlobalTheme('white')" class="p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-base shadow-sm">⚪</button>
+                    <button onclick="setGlobalTheme('dark')" class="p-3 rounded-2xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-base shadow-sm">🌙</button>
+                    <button onclick="setGlobalTheme('blue')" class="p-3 rounded-2xl border-2 border-sky-200 bg-sky-100 text-sky-950 font-black text-base shadow-sm">🩵</button>
+                    <button onclick="setGlobalTheme('yellow')" class="p-3 rounded-2xl border-2 border-amber-200 bg-amber-100 text-amber-950 font-black text-base shadow-sm">💛</button>
+                    <button onclick="setGlobalTheme('green')" class="p-3 rounded-2xl border-2 border-emerald-200 bg-emerald-100 text-emerald-950 font-black text-base shadow-sm">💚</button>
                 </div>
             </div>
 
             <div>
-                <label class="block font-bold text-slate-700 mb-2.5">Лимит карточек на экране:</label>
+                <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Отображение на экране</label>
                 <div class="flex gap-2">
-                    <button onclick="setLimit(15)" id="limit-15" class="flex-1 py-2 rounded-xl border font-bold bg-white text-slate-700 shadow-sm transition-all">15 шт</button>
-                    <button onclick="setLimit(20)" id="limit-20" class="flex-1 py-2 rounded-xl border font-bold bg-white text-slate-700 shadow-sm transition-all">20 шт</button>
-                    <button onclick="setLimit(25)" id="limit-25" class="flex-1 py-2 rounded-xl border font-bold bg-white text-slate-700 shadow-sm transition-all">25 шт</button>
+                    <button onclick="setLimit(15)" id="limit-15" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">15 шт</button>
+                    <button onclick="setLimit(20)" id="limit-20" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">20 шт</button>
+                    <button onclick="setLimit(25)" id="limit-25" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">25 шт</button>
                 </div>
             </div>
         </div>
 
-        <!-- Приветствие -->
-        <div class="mb-8 relative z-10">
-            <h2 class="text-[28px] leading-tight font-black tracking-tight text-slate-900 mb-1.5">Привет, Владелец</h2>
-            <p class="text-sm text-slate-500 font-medium">Ваш бизнес под полным контролем</p>
-        </div>
-
-        <!-- Блоки управления (Дорогие карточки) -->
-        <div class="space-y-3.5 relative z-10">
+        <!-- Сетка модулей -->
+        <div class="flex flex-col gap-4">
             
-            <!-- ГЛАВНАЯ КНОПКА (Админка) -->
-            <button onclick="window.location.href='admin.html'" class="active-scale w-full flex items-center p-4 sm:p-5 rounded-2xl bg-slate-900 text-white shadow-lg hover:shadow-xl hover:bg-slate-800 transition-all text-left border border-slate-800">
-                <div class="w-14 h-14 flex items-center justify-center rounded-2xl bg-white/10 text-3xl shadow-inner backdrop-blur-sm mr-4">🛡️</div>
-                <div class="flex-1">
-                    <p class="font-black text-lg tracking-wide">Рабочая Панель</p>
-                    <p class="text-xs text-slate-300 font-medium mt-0.5 opacity-90">Модерация, отзывы, заявки</p>
+            <!-- ГЛАВНЫЙ МОДУЛЬ (АДМИНКА) - Огромная кнопка -->
+            <button onclick="window.location.href='admin.html'" class="active-scale w-full text-left bg-slate-900 text-white rounded-[2rem] p-6 shadow-2xl shadow-slate-900/20 relative overflow-hidden flex items-center justify-between border border-slate-800">
+                <div class="relative z-10">
+                    <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-3">Главный модуль</span>
+                    <h2 class="text-2xl font-black tracking-tight mb-1">Рабочая панель</h2>
+                    <p class="text-sm font-medium text-slate-400">Модерация, отзывы, заявки</p>
                 </div>
-                <div class="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white font-light text-xl">›</div>
+                <div class="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md relative z-10 text-white text-2xl font-light">
+                    ›
+                </div>
+                <!-- Декоративный круг -->
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
             </button>
 
-            <!-- КНОПКА АРХИВА -->
-            <button onclick="alert('Модуль Архива спроектирован и ждет реализации (Этап 7)')" class="active-scale w-full flex items-center p-4 rounded-2xl bg-white border-2 border-slate-100 hover:border-slate-200 shadow-sm hover:shadow-md transition-all text-left">
-                <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-amber-50 text-2xl mr-4 border border-amber-100">📦</div>
-                <div class="flex-1">
-                    <p class="font-extrabold text-slate-800 text-base">Сейф-Архив</p>
-                    <p class="text-[11px] text-slate-500 font-semibold mt-0.5 uppercase tracking-wider">В разработке</p>
-                </div>
-                <span class="text-slate-300 text-2xl font-light">›</span>
-            </button>
+            <div class="h-4"></div> <!-- Разделитель -->
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2 mb-1">Инструменты бизнеса</p>
 
-            <!-- КНОПКА ПЕРСОНАЛА -->
-            <button onclick="alert('Модуль Управления Персоналом ждет ваших сценариев работы (Этап 8)')" class="active-scale w-full flex items-center p-4 rounded-2xl bg-white border-2 border-slate-100 hover:border-slate-200 shadow-sm hover:shadow-md transition-all text-left">
-                <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-sky-50 text-2xl mr-4 border border-sky-100">👥</div>
-                <div class="flex-1">
-                    <p class="font-extrabold text-slate-800 text-base">Команда и Доступы</p>
-                    <p class="text-[11px] text-slate-500 font-semibold mt-0.5 uppercase tracking-wider">В разработке</p>
-                </div>
-                <span class="text-slate-300 text-2xl font-light">›</span>
-            </button>
+            <!-- ВТОРОСТЕПЕННЫЕ МОДУЛИ (Список в стиле iOS) -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+                
+                <button onclick="alert('Модуль Архива спроектирован и ждет реализации (Этап 7)')" class="active-scale w-full flex items-center justify-between p-5 border-b border-slate-100 bg-white hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">📦</div>
+                        <div class="text-left">
+                            <h3 class="text-base font-extrabold text-slate-900">Сейф-Архив</h3>
+                            <p class="text-xs font-medium text-slate-500 mt-0.5">История и лиды</p>
+                        </div>
+                    </div>
+                    <span class="text-slate-300 text-2xl font-light">›</span>
+                </button>
+
+                <button onclick="alert('Модуль Управления Персоналом ждет ваших сценариев (Этап 8)')" class="active-scale w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">👥</div>
+                        <div class="text-left">
+                            <h3 class="text-base font-extrabold text-slate-900">Персонал</h3>
+                            <p class="text-xs font-medium text-slate-500 mt-0.5">Смены и доступы</p>
+                        </div>
+                    </div>
+                    <span class="text-slate-300 text-2xl font-light">›</span>
+                </button>
+            </div>
 
         </div>
-
-        <div class="mt-8 text-center relative z-10">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-black text-emerald-600 uppercase tracking-widest">
-                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                Система активна
-            </span>
-        </div>
-
     </div>
 
     <script>
-        // Логика настроек (Единая с admin.html)
         let currentTheme = localStorage.getItem('theme_reviews') || 'white';
         let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
 
+        // Так как экран на 100%, цвета применяются прямо к body
         const themeStyles = {
-            white: { body: 'bg-slate-100', card: 'bg-white border-slate-200/60', text: 'text-slate-900' },
-            dark: { body: 'bg-slate-950', card: 'bg-slate-900 border-slate-800 text-white', text: 'text-white' },
-            blue: { body: 'bg-sky-100/80', card: 'bg-white border-sky-200/60 shadow-sky-900/5', text: 'text-sky-950' },
-            yellow: { body: 'bg-amber-50', card: 'bg-white border-amber-200/60 shadow-amber-900/5', text: 'text-amber-950' },
-            green: { body: 'bg-emerald-50', card: 'bg-white border-emerald-200/60 shadow-emerald-900/5', text: 'text-emerald-950' }
+            white: { body: 'bg-slate-50', text: 'text-slate-900' },
+            dark: { body: 'bg-slate-950', text: 'text-white' },
+            blue: { body: 'bg-sky-50', text: 'text-sky-950' },
+            yellow: { body: 'bg-amber-50', text: 'text-amber-950' },
+            green: { body: 'bg-emerald-50', text: 'text-emerald-950' }
         };
 
         function applyTheme(themeName) {
             const body = document.getElementById('app-body');
-            const card = document.getElementById('app-card');
             const title = document.getElementById('header-title');
             
-            body.className = `min-h-screen p-3 sm:p-6 font-sans antialiased flex flex-col items-center justify-center pb-20 theme-transition ${themeStyles[themeName].body}`;
-            card.className = `w-full max-w-md rounded-[2rem] shadow-xl border p-6 sm:p-8 theme-transition relative overflow-hidden ${themeStyles[themeName].card}`;
-            title.className = `text-xl font-black tracking-tight flex items-center gap-1.5 ${themeStyles[themeName].text}`;
+            body.className = `min-h-screen font-sans antialiased theme-transition pb-12 ${themeStyles[themeName].body}`;
+            title.className = `text-3xl font-black tracking-tight flex items-center gap-2 ${themeStyles[themeName].text}`;
         }
 
         function setGlobalTheme(themeName) {
             currentTheme = themeName;
-            // Сохраняем во все ключи, чтобы админка тоже перекрасилась
             localStorage.setItem('theme_reviews', themeName);
             localStorage.setItem('theme_leads', themeName);
             localStorage.setItem('theme_appointments', themeName);
@@ -158,12 +157,11 @@
             [15, 20, 25].forEach(l => {
                 const btn = document.getElementById(`limit-${l}`);
                 if (btn) btn.className = (l === displayLimit) 
-                    ? 'flex-1 py-2 rounded-xl border-2 border-slate-800 font-extrabold bg-slate-50 text-slate-900 shadow-sm transition-all'
-                    : 'flex-1 py-2 rounded-xl border font-bold bg-white text-slate-500 hover:bg-slate-50 transition-all';
+                    ? 'flex-1 py-3 rounded-2xl border-2 border-slate-900 font-extrabold bg-slate-900 text-white shadow-md transition-all'
+                    : 'flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-500 hover:bg-slate-50 transition-all';
             });
         }
 
-        // При загрузке применяем тему
         window.addEventListener('DOMContentLoaded', () => {
             applyTheme(currentTheme);
         });
