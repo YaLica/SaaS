@@ -13,25 +13,8 @@ input, textarea, select { font-size: 16px !important; }
 </head>
 <body id="app-body" class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20 theme-transition">
 
-<!-- ================= 🔒 ЭКРАН ВХОДА ================= -->
-<div id="login-screen" class="max-w-sm mx-auto mt-20">
-    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 text-center">
-        <div class="text-5xl mb-3">🛡️</div>
-        <h1 class="text-xl font-black text-slate-900 mb-1">Модератор PRO</h1>
-        <p class="text-xs text-slate-500 mb-5">Введите код доступа</p>
-        <input type="password" id="login-code" inputmode="numeric" placeholder="• • • •"
-            class="w-full text-center tracking-[0.5em] text-2xl font-black border-2 border-slate-300 rounded-xl py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800"
-            onkeydown="if(event.key==='Enter') doLogin()">
-        <p id="login-error" class="hidden text-red-500 text-xs font-bold mb-3"></p>
-        <button onclick="doLogin()" id="login-btn"
-            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold transition-all active:bg-emerald-800 shadow-sm">
-            Войти
-        </button>
-    </div>
-</div>
-
 <!-- ================= 🖥️ ОСНОВНАЯ АДМИНКА ================= -->
-<div id="app-card" class="hidden max-w-2xl mx-auto rounded-2xl shadow-md border p-4 sm:p-6 theme-transition">
+<div id="app-card" class="max-w-2xl mx-auto rounded-2xl shadow-md border p-4 sm:p-6 theme-transition">
 
     <!-- Шапка -->
     <div class="flex items-center justify-between pb-3 mb-3 border-b border-black/10">
@@ -40,15 +23,9 @@ input, textarea, select { font-size: 16px !important; }
             <h1 id="header-title" class="text-xl font-black tracking-tight text-slate-900">Модератор 🛡️</h1>
         </div>
         <div class="flex items-center gap-2">
-            <!-- 🏠 Панель владельца — видна ТОЛЬКО владельцу -->
-            <button id="owner-btn" onclick="goToOwner()" class="hidden px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all active:bg-indigo-800" title="Панель владельца">
-                🏠 Владелец
-            </button>
-            <button id="settings-gear" onclick="toggleSettings()" class="hidden p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Настройки">
-                ⚙️
-            </button>
+            <button onclick="goToOwner()" class="px-3 py-2 bg-black/5 hover:bg-black/10 text-slate-700 rounded-xl text-xs font-bold transition-all active:bg-black/20" title="На главный экран">🏠</button>
+            <button id="settings-gear" onclick="toggleSettings()" class="p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Настройки">⚙️</button>
             <span class="bg-amber-400/30 text-amber-950 px-2.5 py-1 rounded-xl text-xs font-black tracking-wide uppercase shadow-2xs">PRO</span>
-            <button onclick="doLogout()" class="p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Выйти">🚪</button>
         </div>
     </div>
 
@@ -118,7 +95,6 @@ input, textarea, select { font-size: 16px !important; }
     let allReviews = [];
     let showFullArchive = false;
     let currentTab = 'reviews';
-    let currentRole = null;
     let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
     let retentionMonths = parseInt(localStorage.getItem('admin_retention')) || 6;
     let lastDataSignature = '';
@@ -136,61 +112,7 @@ input, textarea, select { font-size: 16px !important; }
         green: { body: 'bg-emerald-200/90', card: 'bg-emerald-50/90 border-emerald-300 shadow-emerald-100', text: 'text-emerald-950' }
     };
 
-    async function doLogin() {
-        const code = document.getElementById('login-code').value.trim();
-        const errorEl = document.getElementById('login-error');
-        const btn = document.getElementById('login-btn');
-        if (!code) { errorEl.innerText = 'Введите код'; errorEl.classList.remove('hidden'); return; }
-        btn.disabled = true; btn.innerText = 'Проверяем...'; errorEl.classList.add('hidden');
-        try {
-            const res = await fetch(`${API_URL}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                body: JSON.stringify({ access_code: code })
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                errorEl.innerText = err.detail || 'Неверный код доступа';
-                errorEl.classList.remove('hidden');
-                btn.disabled = false; btn.innerText = 'Войти'; return;
-            }
-            const user = await res.json();
-            currentRole = user.role;
-            sessionStorage.setItem('session_role', user.role);
-            sessionStorage.setItem('session_name', user.name);
-            enterApp();
-        } catch (e) {
-            errorEl.innerText = 'Ошибка сети. Проверьте сервер.';
-            errorEl.classList.remove('hidden');
-            btn.disabled = false; btn.innerText = 'Войти';
-        }
-    }
-
-    function doLogout() {
-        sessionStorage.removeItem('session_role');
-        sessionStorage.removeItem('session_name');
-        currentRole = null;
-        location.reload();
-    }
-
     function goToOwner() { window.location.href = 'owner.html'; }
-
-    function enterApp() {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-card').classList.remove('hidden');
-        const gear = document.getElementById('settings-gear');
-        const ownerBtn = document.getElementById('owner-btn');
-        if (currentRole === 'owner') {
-            gear.classList.remove('hidden');
-            ownerBtn.classList.remove('hidden');
-        } else {
-            gear.classList.add('hidden');
-            ownerBtn.classList.add('hidden');
-        }
-        switchTab('reviews');
-        loadReviews();
-        setInterval(autoRefresh, 30000);
-    }
 
     function esc(s) {
         return String(s ?? '').replace(/[&<>"']/g, c =>
@@ -231,7 +153,6 @@ input, textarea, select { font-size: 16px !important; }
         applyTheme(t);
     }
     function toggleSettings() {
-        if (currentRole !== 'owner') return;
         document.getElementById('settings-panel').classList.toggle('hidden');
         updateSettingsUI();
     }
@@ -322,7 +243,8 @@ input, textarea, select { font-size: 16px !important; }
                 <div class="mt-3 space-y-2">
                     <div class="hidden" id="reply-edit-${review.id}">
                         <textarea id="reply-${review.id}" rows="2" placeholder="Напишите ответ клиенту..." class="w-full text-sm border-2 border-slate-300 rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-slate-800"></textarea>
-                                             <div class="flex gap-2" id="reply-actions-${review.id}">
+                    </div>
+                    <div class="flex gap-2" id="reply-actions-${review.id}">
                         <button onclick="approveReview(${review.id})" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold text-xs">✅ Одобрить</button>
                         <button onclick="toggleReplyBox(${review.id})" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white py-2 rounded-xl font-bold text-xs">💬 Ответить</button>
                         <button onclick="deleteReview(${review.id})" class="px-3 bg-red-500 hover:bg-red-600 text-white py-2 rounded-xl font-bold text-xs">🗑️</button>
@@ -362,35 +284,133 @@ input, textarea, select { font-size: 16px !important; }
     }
     function toggleReplyBox(id) {
         const e = document.getElementById(`reply-edit-${id}`);
-        const a = document.getElementById(`reply-actions-${id}`);
         if (!e) return;
         const open = e.classList.contains('hidden');
         e.classList.toggle('hidden');
-        if (a) a.classList.toggle('hidden');
         if (open) { const t = document.getElementById(`reply-${id}`); if (t) t.focus(); }
     }
-    function toggleArchive() { showFullArchive = !showFullArchive; renderReviews(); }
-    async function approveReview(id) {
-        try { const r = await fetch(`${API_URL}/api/reviews/${id}/approve`, { method:'PUT', headers:{'ngrok-skip-browser-warning':'true'} }); await handleAdminResponse(r); }
-        catch(e){ alert('❌ Ошибка сети'); }
+    function toggleArchive() { showFullArchive = !showFullArchive; renderReviews(
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Модератор PRO — Владелец</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+button:active { transform: scale(0.98); }
+.theme-transition { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+.font-title { font-family: 'Playfair Display', serif; }
+.font-body { font-family: 'Manrope', sans-serif; }
+.plate { transition: transform .18s ease, box-shadow .18s ease; }
+.plate:hover { transform: translateY(-2px); }
+</style>
+</head>
+<body id="app-body" class="bg-slate-100 min-h-screen p-4 sm:p-6 font-body text-slate-800 antialiased theme-transition">
+
+<div id="app-card" class="max-w-md mx-auto mt-6 rounded-3xl shadow-md border p-6 sm:p-8 theme-transition">
+
+    <!-- Шапка: название + шестерёнка -->
+    <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2">
+            <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shadow-sm"></div>
+            <h1 id="brand-title" class="text-lg font-extrabold tracking-tight text-slate-900">Модератор <span class="text-amber-500">PRO</span></h1>
+        </div>
+        <button id="settings-gear" onclick="toggleSettings()" class="p-2 bg-black/5 hover:bg-black/10 rounded-xl text-slate-700 transition-all active:bg-black/20" title="Настройки">⚙️</button>
+    </div>
+
+    <!-- Панель настроек (темы) -->
+    <div id="settings-panel" class="hidden mb-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-300 text-xs space-y-3 shadow-lg">
+        <div class="flex justify-between items-center border-b pb-2">
+            <span class="font-extrabold text-slate-800 text-sm">⚙️ Тема оформления</span>
+            <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600">✕ Закрыть</button>
+        </div>
+        <div class="grid grid-cols-5 gap-1.5 text-center">
+            <button onclick="setOwnerTheme('white')" class="p-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 font-bold text-[10px]">⚪ Белая</button>
+            <button onclick="setOwnerTheme('dark')" class="p-2 rounded-xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-[10px]">🌙 Тёмная</button>
+            <button onclick="setOwnerTheme('blue')" class="p-2 rounded-xl border-2 border-sky-400 bg-sky-300 text-sky-950 font-black text-[10px]">🩵 Голубой</button>
+            <button onclick="setOwnerTheme('yellow')" class="p-2 rounded-xl border-2 border-amber-400 bg-amber-300 text-amber-950 font-black text-[10px]">💛 Желтый</button>
+            <button onclick="setOwnerTheme('green')" class="p-2 rounded-xl border-2 border-emerald-400 bg-emerald-300 text-emerald-950 font-black text-[10px]">💚 Мята</button>
+        </div>
+    </div>
+
+    <!-- Надпись Владелец -->
+    <div class="text-center mb-7">
+        <p id="owner-word" class="font-title text-4xl sm:text-5xl font-black tracking-tight text-slate-900">Владелец</p>
+        <div class="mx-auto mt-2 w-16 h-[3px] rounded-full bg-amber-400"></div>
+    </div>
+
+    <!-- Плашки -->
+    <div class="space-y-3">
+        <!-- Админка -->
+        <button onclick="goTo('admin.html')" class="plate w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md text-left">
+            <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-emerald-100 text-2xl">🛡️</div>
+            <div class="flex-1">
+                <p class="font-extrabold text-slate-900">Админка</p>
+                <p class="text-xs text-slate-500">Отзывы, заявки, запись</p>
+            </div>
+            <span class="text-slate-300 text-xl">›</span>
+        </button>
+
+        <!-- Архив -->
+        <button onclick="goTo('archive.html')" class="plate w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md text-left">
+            <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-amber-100 text-2xl">📦</div>
+            <div class="flex-1">
+                <p class="font-extrabold text-slate-900">Архив</p>
+                <p class="text-xs text-slate-500">История и хранилище</p>
+            </div>
+            <span class="text-slate-300 text-xl">›</span>
+        </button>
+
+        <!-- Роли для сотрудников -->
+        <button onclick="goTo('roles.html')" class="plate w-full flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-md text-left">
+            <div class="w-11 h-11 flex items-center justify-center rounded-xl bg-indigo-100 text-2xl">👥</div>
+            <div class="flex-1">
+                <p class="font-extrabold text-slate-900">Роли для сотрудников</p>
+                <p class="text-xs text-slate-500">Доступы и статусы команды</p>
+            </div>
+            <span class="text-slate-300 text-xl">›</span>
+        </button>
+    </div>
+
+    <p class="text-center text-[10px] text-slate-400 mt-7 tracking-wide uppercase">Модератор PRO • Панель владельца</p>
+</div>
+
+<script>
+    // Единая тема с админкой: используем те же ключи localStorage
+    const themeStyles = {
+        white: { body: 'bg-slate-100', card: 'bg-white border-slate-200/80', text: 'text-slate-900' },
+        dark: { body: 'bg-slate-950', card: 'bg-slate-900 border-slate-800 text-white', text: 'text-white' },
+        blue: { body: 'bg-sky-200/90', card: 'bg-sky-50/90 border-sky-300 shadow-sky-100', text: 'text-sky-950' },
+        yellow: { body: 'bg-amber-200/90', card: 'bg-amber-50/90 border-amber-300 shadow-amber-100', text: 'text-amber-950' },
+        green: { body: 'bg-emerald-200/90', card: 'bg-emerald-50/90 border-emerald-300 shadow-emerald-100', text: 'text-emerald-950' }
+    };
+
+    let ownerTheme = localStorage.getItem('theme_owner') || 'white';
+
+    function applyTheme(t) {
+        const s = themeStyles[t] || themeStyles.white;
+        document.getElementById('app-body').className =
+            `min-h-screen p-4 sm:p-6 font-body antialiased theme-transition ${s.body}`;
+        document.getElementById('app-card').className =
+            `max-w-md mx-auto mt-6 rounded-3xl shadow-md border p-6 sm:p-8 theme-transition ${s.card}`;
+        document.getElementById('owner-word').className =
+            `font-title text-4xl sm:text-5xl font-black tracking-tight ${s.text}`;
+        document.getElementById('brand-title').className =
+            `text-lg font-extrabold tracking-tight ${s.text}`;
     }
-    async function sendReply(id) {
-        const t = document.getElementById(`reply-${id}`);
-        const a = t ? t.value.trim() : '';
-        if (!a) { alert('Напишите текст ответа'); return; }
-        try { const r = await fetch(`${API_URL}/api/reviews/${id}/reply`, { method:'PUT', headers:{'Content-Type':'application/json','ngrok-skip-browser-warning':'true'}, body: JSON.stringify({admin_answer:a}) }); await handleAdminResponse(r); }
-        catch(e){ alert('❌ Ошибка сети'); }
+    function setOwnerTheme(t) {
+        ownerTheme = t;
+        localStorage.setItem('theme_owner', t);
+        applyTheme(t);
     }
-    async function deleteReview(id) {
-        if (!confirm('Удалить этот отзыв навсегда?')) return;
-        try { const r = await fetch(`${API_URL}/api/reviews/${id}`, { method:'DELETE', headers:{'ngrok-skip-browser-warning':'true'} }); await handleAdminResponse(r); }
-        catch(e){ alert('❌ Ошибка сети'); }
+    function toggleSettings() {
+        document.getElementById('settings-panel').classList.toggle('hidden');
     }
-    window.addEventListener('DOMContentLoaded', () => {
-        const saved = sessionStorage.getItem('session_role');
-        if (saved) { currentRole = saved; enterApp(); }
-        else { document.getElementById('login-code').focus(); }
-    });
+    function goTo(page) { window.location.href = page; }
+
+    window.addEventListener('DOMContentLoaded', () => applyTheme(ownerTheme));
 </script>
 </body>
-</html>                   
+</html>
