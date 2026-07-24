@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Панель владельца</title>
+<title>Роли для сотрудников</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
 button:active { transform: scale(0.97); }
@@ -12,22 +12,13 @@ input, select { font-size: 16px !important; }
 </head>
 <body class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20">
 
-<div id="guard" class="max-w-sm mx-auto mt-24 text-center hidden">
-    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-        <div class="text-5xl mb-3">🔒</div>
-        <h1 class="text-lg font-black text-slate-900 mb-1">Доступ только для владельца</h1>
-        <p class="text-xs text-slate-500 mb-5">Войдите под кодом владельца</p>
-        <a href="admin.html" class="inline-block w-full bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold">← На страницу входа</a>
-    </div>
-</div>
-
-<div id="owner-app" class="hidden max-w-2xl mx-auto bg-white rounded-2xl shadow-md border border-slate-200 p-4 sm:p-6">
+<div id="owner-app" class="max-w-2xl mx-auto bg-white rounded-2xl shadow-md border border-slate-200 p-4 sm:p-6">
     <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
         <div class="flex items-center gap-2">
-            <div class="text-2xl">🏠</div>
-            <h1 class="text-xl font-black text-slate-900">Панель владельца</h1>
+            <div class="text-2xl">👥</div>
+            <h1 class="text-xl font-black text-slate-900">Роли для сотрудников</h1>
         </div>
-        <a href="admin.html" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">← В админку</a>
+        <a href="owner.html" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">← Назад</a>
     </div>
 
     <!-- Форма добавления сотрудника -->
@@ -59,16 +50,6 @@ input, select { font-size: 16px !important; }
     };
 
     function esc(s){ return String(s??'').replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
-
-    function guard() {
-        const role = sessionStorage.getItem('session_role');
-        if (role !== 'owner') {
-            document.getElementById('guard').classList.remove('hidden');
-            return false;
-        }
-        document.getElementById('owner-app').classList.remove('hidden');
-        return true;
-    }
 
     async function loadUsers() {
         try {
@@ -154,9 +135,7 @@ input, select { font-size: 16px !important; }
         } catch(e){ alert('❌ Ошибка сети'); }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        if (guard()) loadUsers();
-    });
+    window.addEventListener('DOMContentLoaded', loadUsers);
 </script>
 </body>
 </html>
