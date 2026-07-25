@@ -72,8 +72,9 @@
         <!-- Вкладка Отзывы -->
         <div id="content-reviews" class="space-y-4">
             <div id="reviews-container" class="space-y-4"></div>
-            <div id="archive-button-container" class="hidden pt-2">
-                <button onclick="toggleArchive()" id="archive-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">📦 Показать скрытые отзывы</button>
+            <!-- Кнопка "показать все", если отзывов больше лимита -->
+            <div id="load-more-container" class="hidden pt-2">
+                <button onclick="toggleShowAll()" id="load-more-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">🔽 Показать все</button>
             </div>
         </div>
 
@@ -96,7 +97,7 @@
     <script>
         const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
         let allReviews = [];
-        let showFullArchive = false;
+        let showAll = false;
         let currentTab = 'reviews';
 
         const tabNamesRU = {
@@ -177,8 +178,8 @@
             updateSettingsUI();
         }
 
-        function toggleArchive() {
-            showFullArchive = !showFullArchive;
+        function toggleShowAll() {
+            showAll = !showAll;
             renderReviews();
         }
 
@@ -196,23 +197,23 @@
 
         function renderReviews() {
             const container = document.getElementById('reviews-container');
-            const archiveBtnContainer = document.getElementById('archive-button-container');
-            const archiveBtn = document.getElementById('archive-btn');
+            const loadMoreContainer = document.getElementById('load-more-container');
+            const loadMoreBtn = document.getElementById('load-more-btn');
             container.innerHTML = '';
 
             if (allReviews.length === 0) {
                 container.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">☕</p><p class="text-gray-400 font-medium text-sm">Новых отзывов нет</p></div>`;
-                archiveBtnContainer.classList.add('hidden');
+                loadMoreContainer.classList.add('hidden');
                 return;
             }
 
-            const reviewsToDisplay = showFullArchive ? allReviews : allReviews.slice(0, displayLimit);
+            const reviewsToDisplay = showAll ? allReviews : allReviews.slice(0, displayLimit);
 
             if (allReviews.length > displayLimit) {
-                archiveBtnContainer.classList.remove('hidden');
-                archiveBtn.innerText = showFullArchive ? "🔼 Свернуть список" : `🔽 Показать старые (ещё ${allReviews.length - displayLimit})`;
+                loadMoreContainer.classList.remove('hidden');
+                loadMoreBtn.innerText = showAll ? "🔼 Свернуть список" : `🔽 Показать старые (ещё ${allReviews.length - displayLimit})`;
             } else {
-                archiveBtnContainer.classList.add('hidden');
+                loadMoreContainer.classList.add('hidden');
             }
 
             reviewsToDisplay.forEach(review => {
@@ -273,8 +274,6 @@
                             </span>
                             <span class="text-[11px] font-semibold text-slate-500">🕒 ${review.created_at || 'Недавний'}</span>
                         </div>
-                        <!-- НОВАЯ КНОПКА АРХИВА -->
-                        <button onclick="archiveReview(${review.id})" class="text-slate-400 hover:text-blue-500 p-1 rounded-lg transition-colors text-sm font-bold active:bg-blue-50" title="Убрать в Архив">📦</button>
                     </div>
                     <div class="mb-1">
                         <h3 class="font-bold text-base text-slate-900">${review.author_name || 'Аноним'}</h3>
@@ -316,17 +315,6 @@
         async function approveOnly(id) {
             await fetch(`${API_URL}/api/reviews/${id}/approve?ngrok-skip-browser-warning=true`, { method: 'PUT', headers: { 'ngrok-skip-browser-warning': 'true' } });
             loadReviews();
-        }
-
-        // НОВАЯ ФУНКЦИЯ ДЛЯ ОТПРАВКИ В АРХИВ
-        async function archiveReview(id) {
-            if (confirm("Убрать этот отзыв в Сейф-Архив? (Он исчезнет с экрана)")) {
-                await fetch(`${API_URL}/api/reviews/${id}/archive?ngrok-skip-browser-warning=true`, { 
-                    method: 'PUT', 
-                    headers: { 'ngrok-skip-browser-warning': 'true' } 
-                });
-                loadReviews();
-            }
         }
 
         switchTab('reviews');
