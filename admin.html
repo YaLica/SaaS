@@ -116,12 +116,20 @@
             'appointments': '📅 Запись'
         };
 
-        let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
+        // ИЗОЛИРОВАННЫЕ КЛЮЧИ АДМИНКИ.
+        const ADMIN_KEYS = {
+            limit: 'admin_panel_limit',
+            reviews: 'admin_panel_theme_reviews',
+            leads: 'admin_panel_theme_leads',
+            appointments: 'admin_panel_theme_appointments'
+        };
+
+        let displayLimit = parseInt(localStorage.getItem(ADMIN_KEYS.limit)) || 20;
 
         let tabThemes = {
-            reviews: localStorage.getItem('theme_reviews') || 'blue',
-            leads: localStorage.getItem('theme_leads') || 'yellow',
-            appointments: localStorage.getItem('theme_appointments') || 'green'
+            reviews: localStorage.getItem(ADMIN_KEYS.reviews) || 'blue',
+            leads: localStorage.getItem(ADMIN_KEYS.leads) || 'yellow',
+            appointments: localStorage.getItem(ADMIN_KEYS.appointments) || 'green'
         };
 
         const themeStyles = {
@@ -144,7 +152,7 @@
 
         function setTabTheme(themeName) {
             tabThemes[currentTab] = themeName;
-            localStorage.setItem(`theme_${currentTab}`, themeName);
+            localStorage.setItem(ADMIN_KEYS[currentTab], themeName);
             applyTheme(themeName);
         }
 
@@ -155,7 +163,7 @@
 
         function setLimit(val) {
             displayLimit = val;
-            localStorage.setItem('admin_limit', val);
+            localStorage.setItem(ADMIN_KEYS.limit, val);
             updateSettingsUI();
             renderReviews();
         }
@@ -343,6 +351,16 @@
                 loadReviews();
             }
         }
+
+        // ЗАЩИТА: Восстановление темы при возврате на страницу
+        window.addEventListener('pageshow', () => {
+            tabThemes = {
+                reviews: localStorage.getItem(ADMIN_KEYS.reviews) || 'blue',
+                leads: localStorage.getItem(ADMIN_KEYS.leads) || 'yellow',
+                appointments: localStorage.getItem(ADMIN_KEYS.appointments) || 'green'
+            };
+            applyTheme(tabThemes[currentTab]);
+        });
 
         switchTab('reviews');
         loadReviews();
