@@ -203,6 +203,9 @@
         </div>
     </div>
 
+    <!-- ЭКРАН ОТРИСОВКИ СПИСКА ОТЗЫВОВ В АРХИВЕ -->
+    <div id="archive-list-screen" class="hidden fixed inset-0 z-[60] overflow-y-auto pb-12 bg-slate-50 font-sans text-slate-900"></div>
+
     <!-- ========================================== -->
     <!-- СКРИПТЫ -->
     <!-- ========================================== -->
@@ -294,11 +297,46 @@
         }
 
         async function loadArchiveReviews() {
-            const res = await fetch(`${API_URL}/api/archive/reviews`, {
+            // Подгружаем реальные отзывы с сайта (те же, что и в панели)
+            const res = await fetch(`${API_URL}/api/reviews`, {
                 headers: { 'ngrok-skip-browser-warning': 'true' }
             });
             const data = await res.json();
-            alert('Отзывов в архиве: ' + data.length);
+
+            let html = `
+                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+                    <button onclick="closeArchiveList()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+                        <span class="text-xl leading-none -mt-1">‹</span> Назад
+                    </button>
+                    <h1 class="text-lg font-black text-slate-800 tracking-tight">Отзывы</h1>
+                    <div class="w-16"></div>
+                </div>
+                <div class="px-5 pt-6 space-y-3">`;
+
+            if (data.length === 0) {
+                html += `<p class="text-center text-slate-400 py-12">Отзывов пока нет</p>`;
+            } else {
+                data.forEach(r => {
+                    html += `
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="font-bold text-slate-900">${r.author_name || 'Аноним'}</h3>
+                            <span class="text-[11px] text-slate-400">${r.created_at || ''}</span>
+                        </div>
+                        <p class="text-sm text-slate-700">${r.text}</p>
+                        ${r.admin_answer ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Ответ: ${r.admin_answer}</p>` : ''}
+                    </div>`;
+                });
+            }
+            html += `</div>`;
+
+            const screen = document.getElementById('archive-list-screen');
+            screen.innerHTML = html;
+            screen.classList.remove('hidden');
+        }
+
+        function closeArchiveList() {
+            document.getElementById('archive-list-screen').classList.add('hidden');
         }
     </script>
 </body>
