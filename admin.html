@@ -43,7 +43,8 @@
             </div>
             
             <div>
-                <label class="block font-bold text-slate-700 mb-2">Цвет темы:</label>
+                <!-- ТЕПЕРЬ ВИДНО, ДЛЯ КАКОЙ ВКЛАДКИ МЕНЯЕТСЯ ЦВЕТ -->
+                <label class="block font-bold text-slate-700 mb-2">Цвет темы для экрана: <span id="settings-tab-name" class="text-emerald-600">⭐ Отзывы</span></label>
                 <div class="grid grid-cols-5 gap-1.5 text-center">
                     <button onclick="setTabTheme('white')" class="p-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 font-bold text-[10px]">⚪ Белая</button>
                     <button onclick="setTabTheme('dark')" class="p-2 rounded-xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-[10px]">🌙 Тёмная</button>
@@ -99,6 +100,12 @@
         let allReviews = [];
         let showFullArchive = false;
         let currentTab = 'reviews';
+
+        const tabNamesRU = {
+            'reviews': '⭐ Отзывы',
+            'leads': '📩 Заявки',
+            'appointments': '📅 Запись'
+        };
 
         let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
 
@@ -161,8 +168,23 @@
             });
             document.getElementById(`content-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 font-extrabold transition-all';
+            
+            // Применяем тему для конкретной вкладки
             applyTheme(tabThemes[tabName]);
+            
+            // Обновляем текст в настройках, чтобы было понятно, для чего меняем цвет
+            const settingsName = document.getElementById('settings-tab-name');
+            if (settingsName) {
+                settingsName.innerText = tabNamesRU[tabName];
+            }
+            
             updateSettingsUI();
+        }
+
+        // ВОТ ФУНКЦИЯ АРХИВА КОТОРАЯ ИСЧЕЗЛА И ИЗ-ЗА КОТОРОЙ ОН НЕ ОТКРЫВАЛСЯ
+        function toggleArchive() {
+            showFullArchive = !showFullArchive;
+            renderReviews();
         }
 
         async function loadReviews() {
@@ -248,7 +270,6 @@
                     </div>`;
                 }
 
-                // ИСПРАВЛЕННЫЙ БАГ: ЗДЕСЬ СТОЯЛ review.name, ТЕПЕРЬ review.author_name
                 card.innerHTML = `
                     <div class="flex justify-between items-start gap-2 mb-2">
                         <div class="flex items-center gap-2">
