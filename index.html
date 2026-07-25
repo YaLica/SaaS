@@ -267,7 +267,14 @@
             });
         }
 
+        // --- ИЗМЕНЕНИЯ ЗДЕСЬ: ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ ---
         window.addEventListener('DOMContentLoaded', () => {
+            currentTheme = localStorage.getItem('owner_theme') || 'white';
+            applyTheme(currentTheme);
+        });
+
+        window.addEventListener('pageshow', () => {
+            currentTheme = localStorage.getItem('owner_theme') || 'white';
             applyTheme(currentTheme);
         });
 
