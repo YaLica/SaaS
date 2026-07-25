@@ -25,7 +25,6 @@
             
             <!-- Кнопки управления -->
             <div class="flex items-center gap-1.5">
-                <!-- КНОПКА ВОЗВРАТА К ВЛАДЕЛЬЦУ -->
                 <button onclick="window.location.href='owner.html'" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-700 transition-all active:bg-slate-300" title="В хаб Владельца">
                     🏠
                 </button>
@@ -43,7 +42,6 @@
             </div>
             
             <div>
-                <!-- ТЕПЕРЬ ВИДНО, ДЛЯ КАКОЙ ВКЛАДКИ МЕНЯЕТСЯ ЦВЕТ -->
                 <label class="block font-bold text-slate-700 mb-2">Цвет темы для экрана: <span id="settings-tab-name" class="text-emerald-600">⭐ Отзывы</span></label>
                 <div class="grid grid-cols-5 gap-1.5 text-center">
                     <button onclick="setTabTheme('white')" class="p-2 rounded-xl border-2 border-slate-300 bg-white text-slate-800 font-bold text-[10px]">⚪ Белая</button>
@@ -75,7 +73,7 @@
         <div id="content-reviews" class="space-y-4">
             <div id="reviews-container" class="space-y-4"></div>
             <div id="archive-button-container" class="hidden pt-2">
-                <button onclick="toggleArchive()" id="archive-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">📦 Показать весь архив</button>
+                <button onclick="toggleArchive()" id="archive-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">📦 Показать скрытые отзывы</button>
             </div>
         </div>
 
@@ -169,10 +167,8 @@
             document.getElementById(`content-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 font-extrabold transition-all';
             
-            // Применяем тему для конкретной вкладки
             applyTheme(tabThemes[tabName]);
             
-            // Обновляем текст в настройках, чтобы было понятно, для чего меняем цвет
             const settingsName = document.getElementById('settings-tab-name');
             if (settingsName) {
                 settingsName.innerText = tabNamesRU[tabName];
@@ -181,7 +177,6 @@
             updateSettingsUI();
         }
 
-        // ВОТ ФУНКЦИЯ АРХИВА КОТОРАЯ ИСЧЕЗЛА И ИЗ-ЗА КОТОРОЙ ОН НЕ ОТКРЫВАЛСЯ
         function toggleArchive() {
             showFullArchive = !showFullArchive;
             renderReviews();
@@ -215,7 +210,7 @@
 
             if (allReviews.length > displayLimit) {
                 archiveBtnContainer.classList.remove('hidden');
-                archiveBtn.innerText = showFullArchive ? "🔼 Свернуть архив" : `📦 Показать архив (ещё ${allReviews.length - displayLimit})`;
+                archiveBtn.innerText = showFullArchive ? "🔼 Свернуть список" : `🔽 Показать старые (ещё ${allReviews.length - displayLimit})`;
             } else {
                 archiveBtnContainer.classList.add('hidden');
             }
@@ -278,7 +273,8 @@
                             </span>
                             <span class="text-[11px] font-semibold text-slate-500">🕒 ${review.created_at || 'Недавний'}</span>
                         </div>
-                        <button onclick="deleteReview(${review.id})" class="text-slate-400 hover:text-red-500 p-1 rounded-lg transition-colors text-xs font-bold active:bg-red-50">🗑️</button>
+                        <!-- НОВАЯ КНОПКА АРХИВА -->
+                        <button onclick="archiveReview(${review.id})" class="text-slate-400 hover:text-blue-500 p-1 rounded-lg transition-colors text-sm font-bold active:bg-blue-50" title="Убрать в Архив">📦</button>
                     </div>
                     <div class="mb-1">
                         <h3 class="font-bold text-base text-slate-900">${review.author_name || 'Аноним'}</h3>
@@ -322,9 +318,13 @@
             loadReviews();
         }
 
-        async function deleteReview(id) {
-            if (confirm("Удалить этот отзыв навсегда?")) {
-                await fetch(`${API_URL}/api/reviews/${id}?ngrok-skip-browser-warning=true`, { method: 'DELETE', headers: { 'ngrok-skip-browser-warning': 'true' } });
+        // НОВАЯ ФУНКЦИЯ ДЛЯ ОТПРАВКИ В АРХИВ
+        async function archiveReview(id) {
+            if (confirm("Убрать этот отзыв в Сейф-Архив? (Он исчезнет с экрана)")) {
+                await fetch(`${API_URL}/api/reviews/${id}/archive?ngrok-skip-browser-warning=true`, { 
+                    method: 'PUT', 
+                    headers: { 'ngrok-skip-browser-warning': 'true' } 
+                });
                 loadReviews();
             }
         }
