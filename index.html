@@ -317,11 +317,17 @@
                 html += `<p class="text-center text-slate-400 py-12">Отзывов пока нет</p>`;
             } else {
                 data.forEach(r => {
+                    // Обрезаем секунды
+                    let displayTime = r.created_at || '';
+                    if (displayTime.length > 5 && displayTime.includes(':')) {
+                        displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
+                    }
+
                     html += `
                     <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60">
                         <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-bold text-slate-900">${r.author_name || 'Аноним'}</h3>
-                            <span class="text-[11px] text-slate-400">${r.created_at || ''}</span>
+                            <h3 class="font-bold text-slate-900">${r.author_name}</h3>
+                            <span class="text-[11px] text-slate-400">${displayTime}</span>
                         </div>
                         <p class="text-sm text-slate-700">${r.text}</p>
                         ${r.admin_answer ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Ответ: ${r.admin_answer}</p>` : ''}
