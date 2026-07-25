@@ -1,526 +1,459 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Управление PRO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        safelist: [
-          'bg-slate-50','bg-slate-950','bg-blue-600','bg-amber-50','bg-emerald-50',
-          'text-slate-900','text-white','text-amber-950','text-emerald-950'
-        ]
-      }
-    </script>
-    <style>
-        body { -webkit-tap-highlight-color: transparent; }
-        .active-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .active-scale:active { transform: scale(0.96); }
-        .theme-transition { transition: background-color 0.3s ease, color 0.3s ease; }
-        
-        /* Плавное появление архива */
-        .fade-in { animation: fadeIn 0.2s ease-out forwards; }
-        .fade-out { animation: fadeOut 0.2s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Управление PRO</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+safelist: [
+'bg-slate-50','bg-slate-950','bg-blue-600','bg-amber-50','bg-emerald-50',
+'text-slate-900','text-white','text-amber-950','text-emerald-950'
+]
+}
+</script>
+<style>
+body { -webkit-tap-highlight-color: transparent; }
+.active-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
+.active-scale:active { transform: scale(0.96); }
+.theme-transition { transition: background-color 0.3s ease, color 0.3s ease; }
+
+
+    /* Плавное появление архива */
+    .fade-in { animation: fadeIn 0.2s ease-out forwards; }
+    .fade-out { animation: fadeOut 0.2s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(10px); } }
+</style>
+
 </head>
 <body id="app-body" class="bg-slate-50 min-h-screen text-slate-900 font-sans antialiased theme-transition pb-12">
 
-    <!-- ОСНОВНОЙ ЭКРАН ХАБА -->
-    <div id="main-hub" class="w-full h-full px-5 sm:px-8 pt-8 sm:pt-12">
+
+<!-- ОСНОВНОЙ ЭКРАН ХАБА -->
+<div id="main-hub" class="w-full h-full px-5 sm:px-8 pt-8 sm:pt-12">
+    
+    <!-- Верхний бар -->
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <h1 id="header-title" class="text-3xl font-black tracking-tight flex items-center gap-2">
+                Управление
+                <span class="bg-slate-900 text-white px-2 py-0.5 rounded-lg text-[11px] uppercase tracking-widest font-bold">PRO</span>
+            </h1>
+            <div class="flex items-center gap-1.5 mt-1">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">Сервер активен</p>
+            </div>
+        </div>
         
-        <!-- Верхний бар -->
-        <div class="flex items-center justify-between mb-10">
-            <div>
-                <h1 id="header-title" class="text-3xl font-black tracking-tight flex items-center gap-2">
-                    Управление
-                    <span class="bg-slate-900 text-white px-2 py-0.5 rounded-lg text-[11px] uppercase tracking-widest font-bold">PRO</span>
-                </h1>
-                <div class="flex items-center gap-1.5 mt-1">
-                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <p class="text-xs font-semibold text-slate-500 tracking-wide uppercase">Сервер активен</p>
-                </div>
-            </div>
-            
-            <button onclick="toggleSettings()" class="w-12 h-12 flex items-center justify-center bg-black/5 hover:bg-black/10 rounded-2xl transition-colors active:bg-black/20" title="Настройки">
-                <span class="text-2xl">⚙️</span>
-            </button>
+        <button onclick="toggleSettings()" class="w-12 h-12 flex items-center justify-center bg-black/5 hover:bg-black/10 rounded-2xl transition-colors active:bg-black/20" title="Настройки">
+            <span class="text-2xl">⚙️</span>
+        </button>
+    </div>
+
+    <!-- ПАНЕЛЬ НАСТРОЕК -->
+    <div id="settings-panel" class="hidden mb-8 p-5 bg-white rounded-3xl border border-slate-200 shadow-xl text-xs space-y-6">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <span class="font-extrabold text-slate-800 text-sm tracking-wide uppercase">Настройки системы</span>
+            <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600 text-lg px-2">✕</button>
         </div>
-
-        <!-- ПАНЕЛЬ НАСТРОЕК -->
-        <div id="settings-panel" class="hidden mb-8 p-5 bg-white rounded-3xl border border-slate-200 shadow-xl text-xs space-y-6">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-                <span class="font-extrabold text-slate-800 text-sm tracking-wide uppercase">Настройки системы</span>
-                <button onclick="toggleSettings()" class="text-slate-400 font-bold hover:text-slate-600 text-lg px-2">✕</button>
-            </div>
-            
-            <div>
-                <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Цветовая тема (Только для этого экрана)</label>
-                <div class="grid grid-cols-5 gap-2 text-center">
-                    <button onclick="setGlobalTheme('white')" class="p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-base shadow-sm">⚪</button>
-                    <button onclick="setGlobalTheme('dark')" class="p-3 rounded-2xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-base shadow-sm">🌙</button>
-                    <!-- НАСЫЩЕННЫЙ СИНИЙ -->
-                    <button onclick="setGlobalTheme('blue')" class="p-3 rounded-2xl border-2 border-blue-500 bg-blue-600 text-white font-black text-base shadow-sm">🟦</button>
-                    <button onclick="setGlobalTheme('yellow')" class="p-3 rounded-2xl border-2 border-amber-200 bg-amber-100 text-amber-950 font-black text-base shadow-sm">💛</button>
-                    <button onclick="setGlobalTheme('green')" class="p-3 rounded-2xl border-2 border-emerald-200 bg-emerald-100 text-emerald-950 font-black text-base shadow-sm">💚</button>
-                </div>
-            </div>
-
-            <div>
-                <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Отображение на экране</label>
-                <div class="flex gap-2">
-                    <button onclick="setLimit(15)" id="limit-15" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">15 шт</button>
-                    <button onclick="setLimit(20)" id="limit-20" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">20 шт</button>
-                    <button onclick="setLimit(25)" id="limit-25" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">25 шт</button>
-                </div>
+        
+        <div>
+            <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Цветовая тема (Только для этого экрана)</label>
+            <div class="grid grid-cols-5 gap-2 text-center">
+                <button onclick="setGlobalTheme('white')" class="p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-base shadow-sm">⚪</button>
+                <button onclick="setGlobalTheme('dark')" class="p-3 rounded-2xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-base shadow-sm">🌙</button>
+                <!-- НАСЫЩЕННЫЙ СИНИЙ -->
+                <button onclick="setGlobalTheme('blue')" class="p-3 rounded-2xl border-2 border-blue-500 bg-blue-600 text-white font-black text-base shadow-sm">🟦</button>
+                <button onclick="setGlobalTheme('yellow')" class="p-3 rounded-2xl border-2 border-amber-200 bg-amber-100 text-amber-950 font-black text-base shadow-sm">💛</button>
+                <button onclick="setGlobalTheme('green')" class="p-3 rounded-2xl border-2 border-emerald-200 bg-emerald-100 text-emerald-950 font-black text-base shadow-sm">💚</button>
             </div>
         </div>
 
-        <!-- Сетка модулей -->
-        <div class="flex flex-col gap-4">
-            
-            <!-- ГЛАВНЫЙ МОДУЛЬ (АДМИНКА) -->
-            <button onclick="window.location.href='admin.html'" class="active-scale w-full text-left bg-slate-900 text-white rounded-[2rem] p-6 shadow-2xl shadow-slate-900/20 relative overflow-hidden flex items-center justify-between border border-slate-800">
-                <div class="relative z-10">
-                    <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-3">Главный модуль</span>
-                    <h2 class="text-2xl font-black tracking-tight mb-1">Рабочая панель</h2>
-                    <p class="text-sm font-medium text-slate-400">Модерация, отзывы, заявки</p>
-                </div>
-                <div class="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md relative z-10 text-white text-2xl font-light">›</div>
-                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-            </button>
-
-            <div class="h-4"></div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2 mb-1">Инструменты бизнеса</p>
-
-            <!-- ВТОРОСТЕПЕННЫЕ МОДУЛИ -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
-                
-                <!-- КНОПКА АРХИВА (Теперь открывает Сейф) -->
-                <button onclick="toggleArchive(true)" class="active-scale w-full flex items-center justify-between p-5 border-b border-slate-100 bg-white hover:bg-slate-50 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">📦</div>
-                        <div class="text-left">
-                            <h3 class="text-base font-extrabold text-slate-900">Сейф-Архив</h3>
-                            <p class="text-xs font-medium text-slate-500 mt-0.5">История и лиды</p>
-                        </div>
-                    </div>
-                    <span class="text-slate-300 text-2xl font-light">›</span>
-                </button>
-
-                <!-- КНОПКА ПЕРСОНАЛА -->
-                <button onclick="alert('Модуль Управления Персоналом ждет ваших сценариев (Этап 8)')" class="active-scale w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">👥</div>
-                        <div class="text-left">
-                            <h3 class="text-base font-extrabold text-slate-900">Персонал</h3>
-                            <p class="text-xs font-medium text-slate-500 mt-0.5">Смены и доступы</p>
-                        </div>
-                    </div>
-                    <span class="text-slate-300 text-2xl font-light">›</span>
-                </button>
+        <div>
+            <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Отображение на экране</label>
+            <div class="flex gap-2">
+                <button onclick="setLimit(15)" id="limit-15" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">15 шт</button>
+                <button onclick="setLimit(20)" id="limit-20" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">20 шт</button>
+                <button onclick="setLimit(25)" id="limit-25" class="flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-700 shadow-sm">25 шт</button>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- НОВЫЙ ЭКРАН: СЕЙФ-АРХИВ (Всплывает поверх) -->
-    <!-- ========================================== -->
-    <div id="archive-screen" class="hidden fixed inset-0 z-50 overflow-y-auto pb-12 bg-slate-50/95 backdrop-blur-xl font-sans text-slate-900">
+    <!-- Сетка модулей -->
+    <div class="flex flex-col gap-4">
         
-        <!-- Шапка -->
-        <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
-            <button onclick="toggleArchive(false)" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
-                <span class="text-xl leading-none -mt-1">‹</span> Назад
-            </button>
-            <h1 class="text-lg font-black text-slate-800 tracking-tight">Сейф-Архив</h1>
-            <div class="w-16"></div> <!-- Распорка для центрирования -->
-        </div>
+        <!-- ГЛАВНЫЙ МОДУЛЬ (АДМИНКА) -->
+        <button onclick="window.location.href='admin.html'" class="active-scale w-full text-left bg-slate-900 text-white rounded-[2rem] p-6 shadow-2xl shadow-slate-900/20 relative overflow-hidden flex items-center justify-between border border-slate-800">
+            <div class="relative z-10">
+                <span class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-full mb-3">Главный модуль</span>
+                <h2 class="text-2xl font-black tracking-tight mb-1">Рабочая панель</h2>
+                <p class="text-sm font-medium text-slate-400">Модерация, отзывы, заявки</p>
+            </div>
+            <div class="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md relative z-10 text-white text-2xl font-light">›</div>
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+        </button>
 
-        <div class="px-5 pt-6">
-            <!-- ⏳ АВТООЧИСТКА ДАННЫХ -->
-            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Срок хранения (Автоочистка)</h2>
-            <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/60 mb-8">
-                <div class="flex justify-between gap-2">
-                    <button onclick="setRetention(3)" id="ret-3" class="flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all">3 мес</button>
-                    <button onclick="setRetention(6)" id="ret-6" class="flex-1 py-3 rounded-2xl text-xs font-black bg-slate-900 text-white shadow-md transition-all">6 мес</button>
-                    <button onclick="setRetention(12)" id="ret-12" class="flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all">12 мес</button>
+        <div class="h-4"></div>
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2 mb-1">Инструменты бизнеса</p>
+
+        <!-- ВТОРОСТЕПЕННЫЕ МОДУЛИ -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+            
+            <!-- КНОПКА АРХИВА (Теперь открывает Сейф) -->
+            <button onclick="toggleArchive(true)" class="active-scale w-full flex items-center justify-between p-5 border-b border-slate-100 bg-white hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">📦</div>
+                    <div class="text-left">
+                        <h3 class="text-base font-extrabold text-slate-900">Сейф-Архив</h3>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5">История и лиды</p>
+                    </div>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-4 text-center leading-tight">
-                    За 3 дня до удаления система пришлет уведомление.<br>Несгораемые элементы удалены не будут.
-                </p>
-            </div>
+                <span class="text-slate-300 text-2xl font-light">›</span>
+            </button>
 
-            <!-- 📁 РАЗДЕЛЫ АРХИВА -->
-            <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">База данных</h2>
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden mb-8">
-                
-                <button onclick="loadArchiveReviews()" class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">📄</span>
-                        <span class="text-base font-bold text-slate-800">Отзывы</span>
+            <!-- КНОПКА ПЕРСОНАЛА -->
+            <button onclick="alert('Модуль Управления Персоналом ждет ваших сценариев (Этап 8)')" class="active-scale w-full flex items-center justify-between p-5 bg-white hover:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 flex items-center justify-center bg-slate-100 rounded-2xl text-2xl">👥</div>
+                    <div class="text-left">
+                        <h3 class="text-base font-extrabold text-slate-900">Персонал</h3>
+                        <p class="text-xs font-medium text-slate-500 mt-0.5">Смены и доступы</p>
                     </div>
-                    <span class="text-slate-300 text-xl font-light">›</span>
-                </button>
-
-                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">📥</span>
-                        <span class="text-base font-bold text-slate-800">Заявки</span>
-                    </div>
-                    <span class="text-slate-300 text-xl font-light">›</span>
-                </button>
-
-                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">📅</span>
-                        <span class="text-base font-bold text-slate-800">Записи</span>
-                    </div>
-                    <span class="text-slate-300 text-xl font-light">›</span>
-                </button>
-
-                <!-- Юридический раздел -->
-                <button class="w-full flex items-center justify-between px-5 py-4 active:bg-slate-50 transition-colors bg-slate-50/50">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">⚖️</span>
-                        <div class="text-left">
-                            <div class="text-base font-black text-slate-900">Рабочее время</div>
-                            <div class="text-[11px] font-medium text-slate-500">Логи смен сотрудников</div>
-                        </div>
-                    </div>
-                    <span class="text-slate-300 text-xl font-light">›</span>
-                </button>
-            </div>
-
-            <!-- ⭐️ ЗОЛОТОЙ ФОНД -->
-            <h2 class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 ml-2">Золотой фонд</h2>
-            <div class="bg-gradient-to-b from-amber-50 to-white rounded-3xl shadow-sm border border-amber-200/60 overflow-hidden">
-                <button onclick="openSavedFolder()" class="w-full flex items-center justify-between px-5 py-4 active:bg-amber-100/50 transition-colors">
-                    <div class="flex items-center gap-3">
-                        <span class="text-xl">⭐️</span>
-                        <div class="text-left">
-                            <div class="text-base font-black text-amber-950">Сохранённые</div>
-                            <div class="text-[11px] font-medium text-amber-700/70">Избранное. Хранится вечно.</div>
-                        </div>
-                    </div>
-                    <span class="text-amber-300 text-xl font-light">›</span>
-                </button>
-            </div>
+                </div>
+                <span class="text-slate-300 text-2xl font-light">›</span>
+            </button>
         </div>
     </div>
+</div>
 
-    <!-- ЭКРАН ОТРИСОВКИ СПИСКА ОТЗЫВОВ В АРХИВЕ -->
-    <div id="archive-list-screen" class="hidden fixed inset-0 z-[60] overflow-y-auto pb-12 bg-slate-50 font-sans text-slate-900"></div>
+<!-- ========================================== -->
+<!-- НОВЫЙ ЭКРАН: СЕЙФ-АРХИВ (Всплывает поверх) -->
+<!-- ========================================== -->
+<div id="archive-screen" class="hidden fixed inset-0 z-50 overflow-y-auto pb-12 bg-slate-50/95 backdrop-blur-xl font-sans text-slate-900">
+    
+    <!-- Шапка -->
+    <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+        <button onclick="toggleArchive(false)" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+            <span class="text-xl leading-none -mt-1">‹</span> Назад
+        </button>
+        <h1 class="text-lg font-black text-slate-800 tracking-tight">Сейф-Архив</h1>
+        <div class="w-16"></div> <!-- Распорка для центрирования -->
+    </div>
 
-    <!-- ========================================== -->
-    <!-- СКРИПТЫ -->
-    <!-- ========================================== -->
-    <script>
-        const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
+    <div class="px-5 pt-6">
+        <!-- ⏳ АВТООЧИСТКА ДАННЫХ -->
+        <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">Срок хранения (Автоочистка)</h2>
+        <div class="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/60 mb-8">
+            <div class="flex justify-between gap-2">
+                <button onclick="setRetention(3)" id="ret-3" class="flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all">3 мес</button>
+                <button onclick="setRetention(6)" id="ret-6" class="flex-1 py-3 rounded-2xl text-xs font-black bg-slate-900 text-white shadow-md transition-all">6 мес</button>
+                <button onclick="setRetention(12)" id="ret-12" class="flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all">12 мес</button>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-4 text-center leading-tight">
+                За 3 дня до удаления система пришлет уведомление.<br>Несгораемые элементы удалены не будут.
+            </p>
+        </div>
 
-        // ИЗОЛИРОВАННАЯ ПАМЯТЬ: Ключ переименован, чтобы админка его не перезаписывала
-        let currentTheme = localStorage.getItem('owner_master_theme') || 'white';
-        let displayLimit = parseInt(localStorage.getItem('owner_limit')) || 20;
-
-        const themeStyles = {
-            white: { body: 'bg-slate-50', text: 'text-slate-900' },
-            dark: { body: 'bg-slate-950', text: 'text-white' },
-            blue: { body: 'bg-blue-600', text: 'text-white' },
-            yellow: { body: 'bg-amber-50', text: 'text-amber-950' },
-            green: { body: 'bg-emerald-50', text: 'text-emerald-950' }
-        };
-
-        function applyTheme(themeName) {
-            const body = document.getElementById('app-body');
-            const title = document.getElementById('header-title');
-            body.className = `min-h-screen font-sans antialiased theme-transition pb-12 ${themeStyles[themeName].body}`;
-            title.className = `text-3xl font-black tracking-tight flex items-center gap-2 ${themeStyles[themeName].text}`;
-        }
-
-        function setGlobalTheme(themeName) {
-            currentTheme = themeName;
-            localStorage.setItem('owner_master_theme', themeName);
-            applyTheme(themeName);
-        }
-
-        function toggleSettings() {
-            document.getElementById('settings-panel').classList.toggle('hidden');
-            updateSettingsUI();
-        }
-
-        function setLimit(val) {
-            displayLimit = val;
-            localStorage.setItem('owner_limit', val);
-            updateSettingsUI();
-        }
-
-        function updateSettingsUI() {
-            [15, 20, 25].forEach(l => {
-                const btn = document.getElementById(`limit-${l}`);
-                if (btn) btn.className = (l === displayLimit) 
-                    ? 'flex-1 py-3 rounded-2xl border-2 border-slate-900 font-extrabold bg-slate-900 text-white shadow-md transition-all'
-                    : 'flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-500 hover:bg-slate-50 transition-all';
-            });
-        }
-
-        // ОБНОВЛЕНИЕ ТЕМЫ: Читает память при обычном заходе и при возврате кнопкой "назад"
-        window.addEventListener('DOMContentLoaded', () => {
-            currentTheme = localStorage.getItem('owner_master_theme') || 'white';
-            applyTheme(currentTheme);
-        });
-
-        window.addEventListener('pageshow', () => {
-            currentTheme = localStorage.getItem('owner_master_theme') || 'white';
-            applyTheme(currentTheme);
-        });
-
-        // --- СКРИПТЫ ДЛЯ АРХИВА ---
-        function toggleArchive(show) {
-            const archiveScreen = document.getElementById('archive-screen');
-            const mainHub = document.getElementById('main-hub');
+        <!-- 📁 РАЗДЕЛЫ АРХИВА -->
+        <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">База данных</h2>
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden mb-8">
             
-            if (show) {
-                archiveScreen.classList.remove('hidden', 'fade-out');
-                archiveScreen.classList.add('fade-in');
-                mainHub.style.display = 'none'; 
+            <button onclick="loadArchiveReviews()" class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">📄</span>
+                    <span class="text-base font-bold text-slate-800">Отзывы</span>
+                </div>
+                <span class="text-slate-300 text-xl font-light">›</span>
+            </button>
+
+            <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">📥</span>
+                    <span class="text-base font-bold text-slate-800">Заявки</span>
+                </div>
+                <span class="text-slate-300 text-xl font-light">›</span>
+            </button>
+
+            <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">📅</span>
+                    <span class="text-base font-bold text-slate-800">Записи</span>
+                </div>
+                <span class="text-slate-300 text-xl font-light">›</span>
+            </button>
+
+            <!-- Юридический раздел -->
+            <button class="w-full flex items-center justify-between px-5 py-4 active:bg-slate-50 transition-colors bg-slate-50/50">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">⚖️</span>
+                    <div class="text-left">
+                        <div class="text-base font-black text-slate-900">Рабочее время</div>
+                        <div class="text-[11px] font-medium text-slate-500">Логи смен сотрудников</div>
+                    </div>
+                </div>
+                <span class="text-slate-300 text-xl font-light">›</span>
+            </button>
+        </div>
+
+        <!-- ⭐️ ЗОЛОТОЙ ФОНД -->
+        <h2 class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 ml-2">Золотой фонд</h2>
+        <div class="bg-gradient-to-b from-amber-50 to-white rounded-3xl shadow-sm border border-amber-200/60 overflow-hidden">
+            <button onclick="loadSavedReviews()" class="w-full flex items-center justify-between px-5 py-4 active:bg-amber-100/50 transition-colors">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">⭐️</span>
+                    <div class="text-left">
+                        <div class="text-base font-black text-amber-950">Сохранённые</div>
+                        <div class="text-[11px] font-medium text-amber-700/70">Избранное. Хранится вечно.</div>
+                    </div>
+                </div>
+                <span class="text-amber-300 text-xl font-light">›</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ЭКРАН ОТРИСОВКИ СПИСКА ОТЗЫВОВ В АРХИВЕ -->
+<div id="archive-list-screen" class="hidden fixed inset-0 z-[60] overflow-y-auto pb-12 bg-slate-50 font-sans text-slate-900"></div>
+
+<!-- ========================================== -->
+<!-- СКРИПТЫ -->
+<!-- ========================================== -->
+<script>
+    const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
+
+    // ИЗОЛИРОВАННАЯ ПАМЯТЬ: Ключ переименован, чтобы админка его не перезаписывала
+    let currentTheme = localStorage.getItem('owner_master_theme') || 'white';
+    let displayLimit = parseInt(localStorage.getItem('owner_limit')) || 20;
+
+    const themeStyles = {
+        white: { body: 'bg-slate-50', text: 'text-slate-900' },
+        dark: { body: 'bg-slate-950', text: 'text-white' },
+        blue: { body: 'bg-blue-600', text: 'text-white' },
+        yellow: { body: 'bg-amber-50', text: 'text-amber-950' },
+        green: { body: 'bg-emerald-50', text: 'text-emerald-950' }
+    };
+
+    function applyTheme(themeName) {
+        const body = document.getElementById('app-body');
+        const title = document.getElementById('header-title');
+        body.className = `min-h-screen font-sans antialiased theme-transition pb-12 ${themeStyles[themeName].body}`;
+        title.className = `text-3xl font-black tracking-tight flex items-center gap-2 ${themeStyles[themeName].text}`;
+    }
+
+    function setGlobalTheme(themeName) {
+        currentTheme = themeName;
+        localStorage.setItem('owner_master_theme', themeName);
+        applyTheme(themeName);
+    }
+
+    function toggleSettings() {
+        document.getElementById('settings-panel').classList.toggle('hidden');
+        updateSettingsUI();
+    }
+
+    function setLimit(val) {
+        displayLimit = val;
+        localStorage.setItem('owner_limit', val);
+        updateSettingsUI();
+    }
+
+    function updateSettingsUI() {
+        [15, 20, 25].forEach(l => {
+            const btn = document.getElementById(`limit-${l}`);
+            if (btn) btn.className = (l === displayLimit) 
+                ? 'flex-1 py-3 rounded-2xl border-2 border-slate-900 font-extrabold bg-slate-900 text-white shadow-md transition-all'
+                : 'flex-1 py-3 rounded-2xl border font-bold bg-white text-slate-500 hover:bg-slate-50 transition-all';
+        });
+    }
+
+    // ОБНОВЛЕНИЕ ТЕМЫ: Читает память при обычном заходе и при возврате кнопкой "назад"
+    window.addEventListener('DOMContentLoaded', () => {
+        currentTheme = localStorage.getItem('owner_master_theme') || 'white';
+        applyTheme(currentTheme);
+    });
+
+    window.addEventListener('pageshow', () => {
+        currentTheme = localStorage.getItem('owner_master_theme') || 'white';
+        applyTheme(currentTheme);
+    });
+
+    // --- СКРИПТЫ ДЛЯ АРХИВА ---
+    function toggleArchive(show) {
+        const archiveScreen = document.getElementById('archive-screen');
+        const mainHub = document.getElementById('main-hub');
+        
+        if (show) {
+            archiveScreen.classList.remove('hidden', 'fade-out');
+            archiveScreen.classList.add('fade-in');
+            mainHub.style.display = 'none'; 
+        } else {
+            archiveScreen.classList.remove('fade-in');
+            archiveScreen.classList.add('fade-out');
+            mainHub.style.display = 'block'; 
+            setTimeout(() => archiveScreen.classList.add('hidden'), 200); 
+        }
+    }
+
+    async function setRetention(months) {
+        [3, 6, 12].forEach(m => {
+            const btn = document.getElementById(`ret-${m}`);
+            if (m === months) {
+                btn.className = 'flex-1 py-3 rounded-2xl text-xs font-black bg-slate-900 text-white shadow-md transition-all';
             } else {
-                archiveScreen.classList.remove('fade-in');
-                archiveScreen.classList.add('fade-out');
-                mainHub.style.display = 'block'; 
-                setTimeout(() => archiveScreen.classList.add('hidden'), 200); 
+                btn.className = 'flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all';
             }
-        }
+        });
+        await fetch(`${API_URL}/api/settings/retention`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+            body: JSON.stringify({ months })
+        });
+    }
 
-        async function setRetention(months) {
-            [3, 6, 12].forEach(m => {
-                const btn = document.getElementById(`ret-${m}`);
-                if (m === months) {
-                    btn.className = 'flex-1 py-3 rounded-2xl text-xs font-black bg-slate-900 text-white shadow-md transition-all';
-                } else {
-                    btn.className = 'flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all';
+    async function loadArchiveReviews() {
+        // Подгружаем реальные отзывы с сайта (ОРИГИНАЛЬНЫЙ КОД БЕЗ ИЗМЕНЕНИЙ)
+        const res = await fetch(`${API_URL}/api/reviews`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const data = await res.json();
+
+        const savedRes = await fetch(`${API_URL}/api/saved`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const savedData = await savedRes.json();
+        const savedIds = savedData.map(s => s.original_id);
+
+        let html = `
+            <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+                <button onclick="closeArchiveList()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+                    <span class="text-xl leading-none -mt-1">‹</span> Назад
+                </button>
+                <h1 class="text-lg font-black text-slate-800 tracking-tight">Отзывы</h1>
+                <div class="w-16"></div>
+            </div>
+            <div class="px-5 pt-6 space-y-3">`;
+
+        if (data.length === 0) {
+            html += `<p class="text-center text-slate-400 py-12">Отзывов пока нет</p>`;
+        } else {
+            data.forEach(r => {
+                // Обрезаем секунды
+                let displayTime = r.created_at || '';
+                if (displayTime.length > 5 && displayTime.includes(':')) {
+                    displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
                 }
+
+                const isSaved = savedIds.includes(r.id);
+                const buttonHtml = isSaved
+                    ? `<button disabled class="mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 cursor-default">✓ Сохранено</button>`
+                    : `<button onclick="saveReview(${r.id}, this)" class="mt-3 w-full py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 active:bg-amber-100 transition-colors">⭐️ Сохранить</button>`;
+
+                html += `
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-slate-900">${r.author_name}</h3>
+                        <span class="text-[11px] text-slate-400">${displayTime}</span>
+                    </div>
+                    <p class="text-sm text-slate-700">${r.text}</p>
+                    ${r.admin_answer ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Ответ: ${r.admin_answer}</p>` : ''}
+                    ${buttonHtml}
+                </div>`;
             });
-            await fetch(`${API_URL}/api/settings/retention`, {
+        }
+        html += `</div>`;
+
+        const screen = document.getElementById('archive-list-screen');
+        screen.innerHTML = html;
+        screen.classList.remove('hidden');
+    }
+
+    function closeArchiveList() {
+        document.getElementById('archive-list-screen').classList.add('hidden');
+    }
+
+    // --- ⭐️ СОХРАНЁННЫЕ ---
+    async function saveReview(reviewId, btn) {
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API_URL}/api/saved/${reviewId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                body: JSON.stringify({ months })
-            });
-        }
-
-        async function loadArchiveReviews() {
-            // Подгружаем реальные отзывы с сайта (ОРИГИНАЛЬНЫЙ КОД БЕЗ ИЗМЕНЕНИЙ)
-            const res = await fetch(`${API_URL}/api/reviews`, {
                 headers: { 'ngrok-skip-browser-warning': 'true' }
             });
             const data = await res.json();
-
-            const savedRes = await fetch(`${API_URL}/api/saved`, {
-                headers: { 'ngrok-skip-browser-warning': 'true' }
-            });
-            const savedData = await savedRes.json();
-            const savedIds = savedData.map(s => s.original_id);
-
-            let html = `
-                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
-                    <button onclick="closeArchiveList()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
-                        <span class="text-xl leading-none -mt-1">‹</span> Назад
-                    </button>
-                    <h1 class="text-lg font-black text-slate-800 tracking-tight">Отзывы</h1>
-                    <div class="w-16"></div>
-                </div>
-                <div class="px-5 pt-6 space-y-3">`;
-
-            if (data.length === 0) {
-                html += `<p class="text-center text-slate-400 py-12">Отзывов пока нет</p>`;
+            if (data.already) {
+                btn.textContent = '✓ Уже в сохранённых';
+                btn.className = 'mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200';
             } else {
-                data.forEach(r => {
-                    // Обрезаем секунды
-                    let displayTime = r.created_at || '';
-                    if (displayTime.length > 5 && displayTime.includes(':')) {
-                        displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
-                    }
-
-                                        const isSaved = savedIds.includes(r.id);
-                    const buttonHtml = isSaved
-                        ? `<button disabled class="mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 cursor-default">✓ Сохранено</button>`
-                        : `<button onclick="saveReview(${r.id}, this)" class="mt-3 w-full py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 active:bg-amber-100 transition-colors">⭐️ Сохранить</button>`;
-
-                    html += `
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-bold text-slate-900">${r.author_name}</h3>
-                            <span class="text-[11px] text-slate-400">${displayTime}</span>
-                        </div>
-                        <p class="text-sm text-slate-700">${r.text}</p>
-                        ${r.admin_answer ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Ответ: ${r.admin_answer}</p>` : ''}
-                        ${buttonHtml}
-                    </div>`;
-                });
+                btn.textContent = '✓ Сохранено';
+                btn.className = 'mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 cursor-default';
             }
-            html += `</div>`;
-
-            const screen = document.getElementById('archive-list-screen');
-            screen.innerHTML = html;
-            screen.classList.remove('hidden');
+        } catch (e) {
+            btn.disabled = false;
+            alert('Ошибка сохранения');
         }
+    }
 
-        function closeArchiveList() {
-            document.getElementById('archive-list-screen').classList.add('hidden');
-        }
+    async function loadSavedReviews() {
+        const res = await fetch(`${API_URL}/api/saved`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
+        const data = await res.json();
 
-        // --- ⭐️ ЗОЛОТОЙ ФОНД: МЕНЮ ПОДПАПОК ---
-        function openSavedFolder() {
-            let html = `
-                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
-                    <button onclick="closeArchiveList()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
-                        <span class="text-xl leading-none -mt-1">‹</span> Назад
-                    </button>
-                    <h1 class="text-lg font-black text-amber-600 tracking-tight">⭐️ Сохранённые</h1>
-                    <div class="w-16"></div>
-                </div>
-                <div class="px-5 pt-6">
-                    <h2 class="text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-2 ml-2">Папки избранного</h2>
-                    <div class="bg-gradient-to-b from-amber-50 to-white rounded-3xl shadow-sm border border-amber-200/60 overflow-hidden">
+        let html = `
+            <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+                <button onclick="closeArchiveList()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+                    <span class="text-xl leading-none -mt-1">‹</span> Назад
+                </button>
+                <h1 class="text-lg font-black text-amber-600 tracking-tight">⭐️ Сохранённые</h1>
+                <div class="w-16"></div>
+            </div>
+            <div class="px-5 pt-6 space-y-3">`;
 
-                        <button onclick="loadSavedReviews()" class="w-full flex items-center justify-between px-5 py-4 border-b border-amber-100 active:bg-amber-100/50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">📄</span>
-                                <span class="text-base font-bold text-amber-950">Отзывы</span>
-                            </div>
-                            <span class="text-amber-300 text-xl font-light">›</span>
-                        </button>
-
-                        <button onclick="loadEmptyFolder('Заявки', '📥')" class="w-full flex items-center justify-between px-5 py-4 border-b border-amber-100 active:bg-amber-100/50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">📥</span>
-                                <span class="text-base font-bold text-amber-950">Заявки</span>
-                            </div>
-                            <span class="text-amber-300 text-xl font-light">›</span>
-                        </button>
-
-                        <button onclick="loadEmptyFolder('Записи', '📅')" class="w-full flex items-center justify-between px-5 py-4 border-b border-amber-100 active:bg-amber-100/50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">📅</span>
-                                <span class="text-base font-bold text-amber-950">Записи</span>
-                            </div>
-                            <span class="text-amber-300 text-xl font-light">›</span>
-                        </button>
-
-                        <button onclick="loadEmptyFolder('Рабочее время', '⚖️')" class="w-full flex items-center justify-between px-5 py-4 active:bg-amber-100/50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <span class="text-xl">⚖️</span>
-                                <span class="text-base font-bold text-amber-950">Рабочее время</span>
-                            </div>
-                            <span class="text-amber-300 text-xl font-light">›</span>
-                        </button>
-                    </div>
-                </div>`;
-
-            const screen = document.getElementById('archive-list-screen');
-            screen.innerHTML = html;
-            screen.classList.remove('hidden');
-        }
-
-        // Заглушка для пустых папок Золотого фонда (задел на будущее)
-        function loadEmptyFolder(title, icon) {
-            let html = `
-                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
-                    <button onclick="openSavedFolder()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
-                        <span class="text-xl leading-none -mt-1">‹</span> Назад
-                    </button>
-                    <h1 class="text-lg font-black text-amber-600 tracking-tight">${icon} ${title}</h1>
-                    <div class="w-16"></div>
-                </div>
-                <div class="px-5 pt-6">
-                    <p class="text-center text-slate-400 py-12">Здесь пока пусто</p>
-                </div>`;
-
-            const screen = document.getElementById('archive-list-screen');
-            screen.innerHTML = html;
-            screen.classList.remove('hidden');
-        }
-
-        // --- ⭐️ СОХРАНЁННЫЕ ---
-        async function saveReview(reviewId, btn) {
-            btn.disabled = true;
-            try {
-                const res = await fetch(`${API_URL}/api/saved/${reviewId}`, {
-                    method: 'POST',
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await res.json();
-                if (data.already) {
-                    btn.textContent = '✓ Уже в сохранённых';
-                    btn.className = 'mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200';
-                } else {
-                    btn.textContent = '✓ Сохранено';
-                    btn.className = 'mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 cursor-default';
+        if (data.length === 0) {
+            html += `<p class="text-center text-slate-400 py-12">Здесь пока пусто</p>`;
+        } else {
+            data.forEach(r => {
+                let displayTime = r.created_at || '';
+                if (displayTime.length > 5 && displayTime.includes(':')) {
+                    displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
                 }
-            } catch (e) {
-                btn.disabled = false;
-                alert('Ошибка сохранения');
-            }
+                html += `
+                <div class="bg-gradient-to-b from-amber-50 to-white rounded-2xl p-4 shadow-sm border border-amber-200/60">
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="font-bold text-amber-950">${r.author_name}</h3>
+                        <span class="text-[11px] text-amber-400">${displayTime}</span>
+                    </div>
+                    <p class="text-sm text-slate-700">${r.text}</p>
+                    ${r.admin_answer ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Ответ: ${r.admin_answer}</p>` : ''}
+                    <button onclick="deleteSaved(${r.id}, this)" class="mt-3 w-full py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold border border-red-200 active:bg-red-100 transition-colors">🗑 Удалить</button>
+                </div>`;
+            });
         }
+        html += `</div>`;
 
-        async function loadSavedReviews() {
-            const res = await fetch(`${API_URL}/api/saved`, {
+        const screen = document.getElementById('archive-list-screen');
+        screen.innerHTML = html;
+        screen.classList.remove('hidden');
+    }
+
+    async function deleteSaved(savedId, btn) {
+        if (!confirm('Удалить из сохранённых навсегда?')) return;
+        btn.disabled = true;
+        try {
+            await fetch(`${API_URL}/api/saved/${savedId}`, {
+                method: 'DELETE',
                 headers: { 'ngrok-skip-browser-warning': 'true' }
             });
-            const data = await res.json();
-
-            let html = `
-                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
-                    <button onclick="openSavedFolder()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
-                        <span class="text-xl leading-none -mt-1">‹</span> Назад
-                    </button>
-                    <h1 class="text-lg font-black text-amber-600 tracking-tight">⭐️ Отзывы</h1>
-                    <div class="w-16"></div>
-                </div>
-                <div class="px-5 pt-6 space-y-3">`;
-
-            if (data.length === 0) {
-                html += `<p class="text-center text-slate-400 py-12">Здесь пока пусто</p>`;
-            } else {
-                data.forEach(r => {
-                    let displayTime = r.created_at || '';
-                    if (displayTime.length > 5 && displayTime.includes(':')) {
-                        displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
-                    }
-                    html += `
-                    <div class="bg-gradient-to-b from-amber-50 to-white rounded-2xl p-4 shadow-sm border border-amber-200/60">
-                        <div class="flex justify-between items-center mb-1">
-                            <h3 class="font-bold text-amber-950">${r.author_name}</h3>
-                            <span class="text-[11px] text-amber-400">${displayTime}</span>
-                        </div>
-                        <p class="text-sm text-slate-700">${r.text}</p>
-                        ${r.admin_answer ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Ответ: ${r.admin_answer}</p>` : ''}
-                        <button onclick="deleteSaved(${r.id}, this)" class="mt-3 w-full py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold border border-red-200 active:bg-red-100 transition-colors">🗑 Удалить</button>
-                    </div>`;
-                });
-            }
-            html += `</div>`;
-
-            const screen = document.getElementById('archive-list-screen');
-            screen.innerHTML = html;
-            screen.classList.remove('hidden');
+            btn.closest('.rounded-2xl').remove();
+        } catch (e) {
+            btn.disabled = false;
+            alert('Ошибка удаления');
         }
+    }
+</script>
 
-        async function deleteSaved(savedId, btn) {
-            if (!confirm('Удалить из сохранённых навсегда?')) return;
-            btn.disabled = true;
-            try {
-                await fetch(`${API_URL}/api/saved/${savedId}`, {
-                    method: 'DELETE',
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                btn.closest('.rounded-2xl').remove();
-            } catch (e) {
-                btn.disabled = false;
-                alert('Ошибка удаления');
-            }
-        }
-    </script>
 </body>
 </html>
+
