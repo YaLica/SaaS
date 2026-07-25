@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Управление PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        safelist: [
+          'bg-slate-50','bg-slate-950','bg-blue-600','bg-amber-50','bg-emerald-50',
+          'text-slate-900','text-white','text-amber-950','text-emerald-950'
+        ]
+      }
+    </script>
     <style>
         body { -webkit-tap-highlight-color: transparent; }
         .active-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
