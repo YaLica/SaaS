@@ -220,11 +220,10 @@
     <script>
         const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
 
-        // --- ИЗОЛИРОВАННАЯ ПАМЯТЬ ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА ---
-        let currentTheme = localStorage.getItem('owner_theme') || 'white';
+        // ИЗОЛИРОВАННАЯ ПАМЯТЬ: Ключ переименован, чтобы админка его не перезаписывала
+        let currentTheme = localStorage.getItem('owner_master_theme') || 'white';
         let displayLimit = parseInt(localStorage.getItem('owner_limit')) || 20;
 
-        // --- НАСЫЩЕННЫЙ СИНИЙ ЦВЕТ ДОБАВЛЕН СЮДА ---
         const themeStyles = {
             white: { body: 'bg-slate-50', text: 'text-slate-900' },
             dark: { body: 'bg-slate-950', text: 'text-white' },
@@ -242,8 +241,7 @@
 
         function setGlobalTheme(themeName) {
             currentTheme = themeName;
-            // СОХРАНЯЕМ ТОЛЬКО В ЯЧЕЙКУ ВЛАДЕЛЬЦА (АДМИНКУ БОЛЬШЕ НЕ ЛОМАЕТ)
-            localStorage.setItem('owner_theme', themeName);
+            localStorage.setItem('owner_master_theme', themeName);
             applyTheme(themeName);
         }
 
@@ -267,14 +265,14 @@
             });
         }
 
-        // --- ИЗМЕНЕНИЯ ЗДЕСЬ: ПРИНУДИТЕЛЬНОЕ ОБНОВЛЕНИЕ ПРИ ВОЗВРАТЕ ---
+        // ОБНОВЛЕНИЕ ТЕМЫ: Читает память при обычном заходе и при возврате кнопкой "назад"
         window.addEventListener('DOMContentLoaded', () => {
-            currentTheme = localStorage.getItem('owner_theme') || 'white';
+            currentTheme = localStorage.getItem('owner_master_theme') || 'white';
             applyTheme(currentTheme);
         });
 
         window.addEventListener('pageshow', () => {
-            currentTheme = localStorage.getItem('owner_theme') || 'white';
+            currentTheme = localStorage.getItem('owner_master_theme') || 'white';
             applyTheme(currentTheme);
         });
 
@@ -312,7 +310,7 @@
         }
 
         async function loadArchiveReviews() {
-            // Подгружаем реальные отзывы с сайта (те же, что и в панели)
+            // Подгружаем реальные отзывы с сайта (ОРИГИНАЛЬНЫЙ КОД БЕЗ ИЗМЕНЕНИЙ)
             const res = await fetch(`${API_URL}/api/reviews`, {
                 headers: { 'ngrok-skip-browser-warning': 'true' }
             });
