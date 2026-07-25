@@ -149,7 +149,7 @@
             <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-2">База данных</h2>
             <div class="bg-white rounded-3xl shadow-sm border border-slate-200/60 overflow-hidden mb-8">
                 
-                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <button onclick="loadArchiveReviews()" class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
                     <div class="flex items-center gap-3">
                         <span class="text-xl">📄</span>
                         <span class="text-base font-bold text-slate-800">Отзывы</span>
@@ -207,6 +207,8 @@
     <!-- СКРИПТЫ -->
     <!-- ========================================== -->
     <script>
+        const API_URL = 'https://rental-scarcity-bagging.ngrok-free.dev';
+
         // --- ИЗОЛИРОВАННАЯ ПАМЯТЬ ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА ---
         let currentTheme = localStorage.getItem('owner_theme') || 'white';
         let displayLimit = parseInt(localStorage.getItem('owner_limit')) || 20;
@@ -275,7 +277,7 @@
             }
         }
 
-        function setRetention(months) {
+        async function setRetention(months) {
             [3, 6, 12].forEach(m => {
                 const btn = document.getElementById(`ret-${m}`);
                 if (m === months) {
@@ -284,6 +286,19 @@
                     btn.className = 'flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all';
                 }
             });
+            await fetch(`${API_URL}/api/settings/retention`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                body: JSON.stringify({ months })
+            });
+        }
+
+        async function loadArchiveReviews() {
+            const res = await fetch(`${API_URL}/api/archive/reviews`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            const data = await res.json();
+            alert('Отзывов в архиве: ' + data.length);
         }
     </script>
 </body>
