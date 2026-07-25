@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Модератор PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        safelist: [
+          'bg-slate-100','bg-slate-950','bg-sky-200/90','bg-amber-200/90','bg-emerald-200/90',
+          'bg-white','bg-slate-900','bg-sky-50','bg-amber-50','bg-emerald-50',
+          'border-slate-200','border-slate-800','border-sky-200','border-amber-200','border-emerald-200',
+          'text-slate-900','text-white','text-sky-950','text-amber-950','text-emerald-950'
+        ]
+      }
+    </script>
     <style>
         button:active { transform: scale(0.97); }
         .theme-transition { transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
