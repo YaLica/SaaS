@@ -49,11 +49,12 @@
             </div>
             
             <div>
-                <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Цветовая тема</label>
+                <label class="block font-bold text-slate-400 uppercase tracking-wider text-[10px] mb-3">Цветовая тема (Только для этого экрана)</label>
                 <div class="grid grid-cols-5 gap-2 text-center">
                     <button onclick="setGlobalTheme('white')" class="p-3 rounded-2xl border-2 border-slate-200 bg-white text-slate-800 font-bold text-base shadow-sm">⚪</button>
                     <button onclick="setGlobalTheme('dark')" class="p-3 rounded-2xl border-2 border-slate-700 bg-slate-900 text-white font-bold text-base shadow-sm">🌙</button>
-                    <button onclick="setGlobalTheme('blue')" class="p-3 rounded-2xl border-2 border-sky-200 bg-sky-100 text-sky-950 font-black text-base shadow-sm">🩵</button>
+                    <!-- НАСЫЩЕННЫЙ СИНИЙ -->
+                    <button onclick="setGlobalTheme('blue')" class="p-3 rounded-2xl border-2 border-blue-500 bg-blue-600 text-white font-black text-base shadow-sm">🟦</button>
                     <button onclick="setGlobalTheme('yellow')" class="p-3 rounded-2xl border-2 border-amber-200 bg-amber-100 text-amber-950 font-black text-base shadow-sm">💛</button>
                     <button onclick="setGlobalTheme('green')" class="p-3 rounded-2xl border-2 border-emerald-200 bg-emerald-100 text-emerald-950 font-black text-base shadow-sm">💚</button>
                 </div>
@@ -206,14 +207,15 @@
     <!-- СКРИПТЫ -->
     <!-- ========================================== -->
     <script>
-        // --- СТАРЫЕ СКРИПТЫ ДЛЯ ТЕМ И НАСТРОЕК ---
-        let currentTheme = localStorage.getItem('theme_reviews') || 'white';
-        let displayLimit = parseInt(localStorage.getItem('admin_limit')) || 20;
+        // --- ИЗОЛИРОВАННАЯ ПАМЯТЬ ТОЛЬКО ДЛЯ ВЛАДЕЛЬЦА ---
+        let currentTheme = localStorage.getItem('owner_theme') || 'white';
+        let displayLimit = parseInt(localStorage.getItem('owner_limit')) || 20;
 
+        // --- НАСЫЩЕННЫЙ СИНИЙ ЦВЕТ ДОБАВЛЕН СЮДА ---
         const themeStyles = {
             white: { body: 'bg-slate-50', text: 'text-slate-900' },
             dark: { body: 'bg-slate-950', text: 'text-white' },
-            blue: { body: 'bg-sky-50', text: 'text-sky-950' },
+            blue: { body: 'bg-blue-600', text: 'text-white' },
             yellow: { body: 'bg-amber-50', text: 'text-amber-950' },
             green: { body: 'bg-emerald-50', text: 'text-emerald-950' }
         };
@@ -227,9 +229,8 @@
 
         function setGlobalTheme(themeName) {
             currentTheme = themeName;
-            localStorage.setItem('theme_reviews', themeName);
-            localStorage.setItem('theme_leads', themeName);
-            localStorage.setItem('theme_appointments', themeName);
+            // СОХРАНЯЕМ ТОЛЬКО В ЯЧЕЙКУ ВЛАДЕЛЬЦА (АДМИНКУ БОЛЬШЕ НЕ ЛОМАЕТ)
+            localStorage.setItem('owner_theme', themeName);
             applyTheme(themeName);
         }
 
@@ -240,7 +241,7 @@
 
         function setLimit(val) {
             displayLimit = val;
-            localStorage.setItem('admin_limit', val);
+            localStorage.setItem('owner_limit', val);
             updateSettingsUI();
         }
 
@@ -257,7 +258,7 @@
             applyTheme(currentTheme);
         });
 
-        // --- НОВЫЕ СКРИПТЫ ДЛЯ АРХИВА ---
+        // --- СКРИПТЫ ДЛЯ АРХИВА ---
         function toggleArchive(show) {
             const archiveScreen = document.getElementById('archive-screen');
             const mainHub = document.getElementById('main-hub');
@@ -265,12 +266,12 @@
             if (show) {
                 archiveScreen.classList.remove('hidden', 'fade-out');
                 archiveScreen.classList.add('fade-in');
-                mainHub.style.display = 'none'; // Скрываем основной хаб для производительности
+                mainHub.style.display = 'none'; 
             } else {
                 archiveScreen.classList.remove('fade-in');
                 archiveScreen.classList.add('fade-out');
                 mainHub.style.display = 'block'; 
-                setTimeout(() => archiveScreen.classList.add('hidden'), 200); // Ждем конец анимации
+                setTimeout(() => archiveScreen.classList.add('hidden'), 200); 
             }
         }
 
@@ -283,7 +284,6 @@
                     btn.className = 'flex-1 py-3 rounded-2xl text-xs font-bold bg-slate-100 text-slate-500 transition-all';
                 }
             });
-            // Здесь в будущем будет логика сохранения в localStorage или БД
         }
     </script>
 </body>
