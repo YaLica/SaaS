@@ -23,10 +23,8 @@ input, textarea, select { font-size: 16px !important; }
 </head>
 <body id="app-body" class="bg-slate-100 min-h-screen p-2 sm:p-6 font-sans text-slate-800 antialiased pb-20 theme-transition">
 
-
 <!-- Главный контейнер -->
 <div id="app-card" class="max-w-2xl mx-auto rounded-2xl shadow-md border p-4 sm:p-6 theme-transition bg-white">
-
 
 <!-- Шапка -->
 <div class="flex items-center justify-between pb-3 mb-3 border-b border-black/10">
@@ -100,9 +98,17 @@ input, textarea, select { font-size: 16px !important; }
 
     <!-- Контейнер: Новые -->
     <div id="leads-new-container" class="space-y-4"></div>
+    <!-- Кнопка "показать все" для НОВЫХ заявок -->
+    <div id="leads-new-more-container" class="hidden pt-2">
+        <button onclick="toggleShowAllLeadsNew()" id="leads-new-more-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">🔽 Показать все</button>
+    </div>
 
     <!-- Контейнер: Принятые -->
     <div id="leads-done-container" class="hidden space-y-4"></div>
+    <!-- Кнопка "показать все" для ПРИНЯТЫХ заявок -->
+    <div id="leads-done-more-container" class="hidden pt-2">
+        <button onclick="toggleShowAllLeadsDone()" id="leads-done-more-btn" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">🔽 Показать все</button>
+    </div>
 </div>
 
 <!-- Тост-уведомление для МАХ (копирование номера) -->
@@ -131,6 +137,11 @@ let allReviews = [];
 let showAll = false;
 let currentTab = 'reviews';
 
+// ПРАВКА 1: Переменные-флаги для заявок
+let allLeads = [];
+let currentLeadTab = 'new';
+let showAllLeadsNew = false;
+let showAllLeadsDone = false;
 
 const tabNamesRU = {
     'reviews': '⭐ Отзывы',
@@ -188,6 +199,7 @@ function setLimit(val) {
     localStorage.setItem(ADMIN_KEYS.limit, val);
     updateSettingsUI();
     renderReviews();
+    renderLeads(); // Обновляем лимит и в заявках тоже
 }
 
 function updateSettingsUI() {
@@ -386,8 +398,6 @@ window.addEventListener('pageshow', () => {
 });
 
 // ================= 📩 ЗАЯВКИ (LEADS) =================
-let allLeads = [];
-let currentLeadTab = 'new';
 
 // Имя оператора: спрашиваем один раз, храним в localStorage
 function getAdminName() {
@@ -435,6 +445,8 @@ function switchLeadTab(tab) {
         btnDone.className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 font-extrabold transition-all';
         btnNew.className = 'flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 font-bold transition-all';
     }
+    
+    renderLeads(); // ПРИМЕНЯЕТ ПРАВИЛА ВИДИМОСТИ КНОПОК ПРИ ПЕРЕКЛЮЧЕНИИ
 }
 
 function buildLeadCard(lead, myName) {
@@ -482,6 +494,8 @@ function buildLeadCard(lead, myName) {
 
     const card = document.createElement('div');
     card.className = 'p-4 sm:p-5 rounded-xl border bg-white/90 border-slate-200/90 shadow-sm transition-all';
+    
+    // ПРАВКА 5: Убрал строку вывода телефона <p>📞 ${lead.phone}</p>
     card.innerHTML = `
         <div class="flex justify-between items-start gap-2 mb-2">
             ${statusBadge}
@@ -489,7 +503,6 @@ function buildLeadCard(lead, myName) {
         </div>
         <div class="mb-3">
             <h3 class="font-bold text-base text-slate-900">${safeName}</h3>
-            <p class="text-slate-700 text-sm mt-0.5">📞 ${lead.phone || '—'}</p>
             ${lead.email ? `<p class="text-slate-500 text-xs mt-0.5">✉️ ${lead.email}</p>` : ''}
             <div class="flex gap-2 mt-1.5 text-[11px]">
                 <span class="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600 font-semibold">💬 ${lead.messenger_pref || 'Звонок'}</span>
@@ -500,9 +513,15 @@ function buildLeadCard(lead, myName) {
     return card;
 }
 
+// ПРАВКА 3: Полная переработка логики renderLeads() с учетом лимитов и кнопок
 function renderLeads() {
     const newContainer = document.getElementById('leads-new-container');
     const doneContainer = document.getElementById('leads-done-container');
+    const newMoreContainer = document.getElementById('leads-new-more-container');
+    const newMoreBtn = document.getElementById('leads-new-more-btn');
+    const doneMoreContainer = document.getElementById('leads-done-more-container');
+    const doneMoreBtn = document.getElementById('leads-done-more-btn');
+
     newContainer.innerHTML = '';
     doneContainer.innerHTML = '';
 
@@ -514,13 +533,24 @@ function renderLeads() {
     // === ПОДРАЗДЕЛ "НОВЫЕ" ===
     if (newLeads.length === 0) {
         newContainer.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">📥</p><p class="text-gray-400 font-medium text-sm">Новых заявок нет</p></div>`;
+        if (newMoreContainer) newMoreContainer.classList.add('hidden');
     } else {
-        newLeads.forEach(lead => newContainer.appendChild(buildLeadCard(lead, myName)));
+        const leadsToDisplay = showAllLeadsNew ? newLeads : newLeads.slice(0, displayLimit);
+        
+        if (newLeads.length > displayLimit && currentLeadTab === 'new') {
+            if (newMoreContainer) newMoreContainer.classList.remove('hidden');
+            if (newMoreBtn) newMoreBtn.innerText = showAllLeadsNew ? "🔼 Свернуть список" : `🔽 Показать все (ещё ${newLeads.length - displayLimit})`;
+        } else {
+            if (newMoreContainer) newMoreContainer.classList.add('hidden');
+        }
+
+        leadsToDisplay.forEach(lead => newContainer.appendChild(buildLeadCard(lead, myName)));
     }
 
     // === ПОДРАЗДЕЛ "ПРИНЯТЫЕ" ===
     if (doneLeads.length === 0) {
         doneContainer.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">✅</p><p class="text-gray-400 font-medium text-sm">Принятых заявок пока нет</p></div>`;
+        if (doneMoreContainer) doneMoreContainer.classList.add('hidden');
     } else {
         const counts = {};
         doneLeads.forEach(l => {
@@ -536,8 +566,28 @@ function renderLeads() {
         
         doneContainer.innerHTML = countsHTML;
         
-        doneLeads.forEach(lead => doneContainer.appendChild(buildLeadCard(lead, myName)));
+        const leadsToDisplay = showAllLeadsDone ? doneLeads : doneLeads.slice(0, displayLimit);
+
+        if (doneLeads.length > displayLimit && currentLeadTab === 'done') {
+            if (doneMoreContainer) doneMoreContainer.classList.remove('hidden');
+            if (doneMoreBtn) doneMoreBtn.innerText = showAllLeadsDone ? "🔼 Свернуть список" : `🔽 Показать все (ещё ${doneLeads.length - displayLimit})`;
+        } else {
+            if (doneMoreContainer) doneMoreContainer.classList.add('hidden');
+        }
+
+        leadsToDisplay.forEach(lead => doneContainer.appendChild(buildLeadCard(lead, myName)));
     }
+}
+
+// ПРАВКА 4: Функции-переключатели
+function toggleShowAllLeadsNew() {
+    showAllLeadsNew = !showAllLeadsNew;
+    renderLeads();
+}
+
+function toggleShowAllLeadsDone() {
+    showAllLeadsDone = !showAllLeadsDone;
+    renderLeads();
 }
 
 async function lockLead(id) {
