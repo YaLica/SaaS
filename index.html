@@ -165,7 +165,7 @@
                     <span class="text-slate-300 text-xl font-light">›</span>
                 </button>
 
-                <button class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
+                <button onclick="loadArchiveLeads()" class="w-full flex items-center justify-between px-5 py-4 border-b border-slate-100 active:bg-slate-50 transition-colors">
                     <div class="flex items-center gap-3">
                         <span class="text-xl">📥</span>
                         <span class="text-base font-bold text-slate-800">Заявки</span>
@@ -414,7 +414,7 @@
                             <span class="text-amber-300 text-xl font-light">›</span>
                         </button>
 
-                        <button onclick="loadSavedEmpty('📥 Заявки')" class="w-full flex items-center justify-between px-5 py-4 border-b border-amber-100 active:bg-amber-100/50 transition-colors">
+                        <button onclick="loadSavedLeads()" class="w-full flex items-center justify-between px-5 py-4 border-b border-amber-100 active:bg-amber-100/50 transition-colors">
                             <div class="flex items-center gap-3">
                                 <span class="text-xl">📥</span>
                                 <span class="text-base font-bold text-amber-950">Заявки</span>
@@ -513,6 +513,146 @@
             btn.disabled = true;
             try {
                 await fetch(`${API_URL}/api/saved/${savedId}`, {
+                    method: 'DELETE',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                btn.closest('.rounded-2xl').remove();
+            } catch (e) {
+                btn.disabled = false;
+                alert('Ошибка удаления');
+            }
+        }
+
+        // ================= 📥 ЗАЯВКИ (АРХИВ) =================
+        async function loadArchiveLeads() {
+            const res = await fetch(`${API_URL}/api/leads`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            const data = await res.json();
+
+            const savedRes = await fetch(`${API_URL}/api/saved_leads`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            const savedData = await savedRes.json();
+            const savedIds = savedData.map(s => s.original_id);
+
+            let html = `
+                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+                    <button onclick="closeArchiveList()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+                        <span class="text-xl leading-none -mt-1">‹</span> Назад
+                    </button>
+                    <h1 class="text-lg font-black text-slate-800 tracking-tight">Заявки</h1>
+                    <div class="w-16"></div>
+                </div>
+                <div class="px-5 pt-6 space-y-3">`;
+
+            if (data.length === 0) {
+                html += `<p class="text-center text-slate-400 py-12">Заявок пока нет</p>`;
+            } else {
+                data.forEach(l => {
+                    let displayTime = l.created_at || '';
+                    if (displayTime.length > 5 && displayTime.includes(':')) {
+                        displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
+                    }
+
+                    const isSaved = savedIds.includes(l.id);
+                    const buttonHtml = isSaved
+                        ? `<button disabled class="mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 cursor-default">✓ Сохранено</button>`
+                        : `<button onclick="saveLead(${l.id}, this)" class="mt-3 w-full py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200 active:bg-amber-100 transition-colors">⭐️ Сохранить</button>`;
+
+                    html += `
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/60">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="font-bold text-slate-900">👤 ${l.name}</h3>
+                            <span class="text-[11px] text-slate-400">${displayTime}</span>
+                        </div>
+                        <p class="text-sm text-slate-700">📞 ${l.phone}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">💬 ${l.messenger_pref || '—'}</p>
+                        ${l.comment ? `<p class="text-xs text-slate-600 mt-1">📝 ${l.comment}</p>` : ''}
+                        ${l.task_result ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Результат: ${l.task_result}</p>` : ''}
+                        ${buttonHtml}
+                    </div>`;
+                });
+            }
+            html += `</div>`;
+
+            const screen = document.getElementById('archive-list-screen');
+            screen.innerHTML = html;
+            screen.classList.remove('hidden');
+        }
+
+        async function saveLead(leadId, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_URL}/api/saved_leads/${leadId}`, {
+                    method: 'POST',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await res.json();
+                if (data.already) {
+                    btn.textContent = '✓ Уже в сохранённых';
+                    btn.className = 'mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200';
+                } else {
+                    btn.textContent = '✓ Сохранено';
+                    btn.className = 'mt-3 w-full py-2 rounded-xl bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 cursor-default';
+                }
+            } catch (e) {
+                btn.disabled = false;
+                alert('Ошибка сохранения');
+            }
+        }
+
+        // ================= 📥 ЗАЯВКИ (ЗОЛОТОЙ ФОНД) =================
+        async function loadSavedLeads() {
+            const res = await fetch(`${API_URL}/api/saved_leads`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            const data = await res.json();
+
+            let html = `
+                <div class="bg-white/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200/50 shadow-sm sticky top-0 z-10">
+                    <button onclick="openSavedFolders()" class="text-slate-500 font-semibold text-base flex items-center gap-1 active:opacity-50 transition-opacity">
+                        <span class="text-xl leading-none -mt-1">‹</span> Назад
+                    </button>
+                    <h1 class="text-lg font-black text-amber-600 tracking-tight">📥 Заявки</h1>
+                    <div class="w-16"></div>
+                </div>
+                <div class="px-5 pt-6 space-y-3">`;
+
+            if (data.length === 0) {
+                html += `<p class="text-center text-slate-400 py-12">Здесь пока пусто</p>`;
+            } else {
+                data.forEach(l => {
+                    let displayTime = l.created_at || '';
+                    if (displayTime.length > 5 && displayTime.includes(':')) {
+                        displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
+                    }
+                    html += `
+                    <div class="bg-gradient-to-b from-amber-50 to-white rounded-2xl p-4 shadow-sm border border-amber-200/60">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3 class="font-bold text-amber-950">👤 ${l.name}</h3>
+                            <span class="text-[11px] text-amber-400">${displayTime}</span>
+                        </div>
+                        <p class="text-sm text-slate-700">📞 ${l.phone}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">💬 ${l.messenger_pref || '—'}</p>
+                        ${l.comment ? `<p class="text-xs text-slate-600 mt-1">📝 ${l.comment}</p>` : ''}
+                        ${l.task_result ? `<p class="text-xs text-emerald-600 mt-2 border-l-2 border-emerald-500 pl-2">Результат: ${l.task_result}</p>` : ''}
+                        <button onclick="deleteSavedLead(${l.id}, this)" class="mt-3 w-full py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold border border-red-200 active:bg-red-100 transition-colors">🗑 Удалить</button>
+                    </div>`;
+                });
+            }
+            html += `</div>`;
+
+            const screen = document.getElementById('archive-list-screen');
+            screen.innerHTML = html;
+            screen.classList.remove('hidden');
+        }
+
+        async function deleteSavedLead(savedId, btn) {
+            if (!confirm('Удалить из сохранённых навсегда?')) return;
+            btn.disabled = true;
+            try {
+                await fetch(`${API_URL}/api/saved_leads/${savedId}`, {
                     method: 'DELETE',
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
