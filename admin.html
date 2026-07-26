@@ -92,7 +92,17 @@ input, textarea, select { font-size: 16px !important; }
 
 <!-- Вкладка Заявки -->
 <div id="content-leads" class="hidden space-y-4">
-    <div id="leads-container" class="space-y-4"></div>
+    <!-- Под-табы: Новые / Принятые -->
+    <div class="flex bg-slate-100 p-1 rounded-xl gap-1 text-xs font-bold">
+        <button id="subtab-new" onclick="switchLeadTab('new')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 font-extrabold transition-all">📥 Новые</button>
+        <button id="subtab-done" onclick="switchLeadTab('done')" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all">✅ Принятые</button>
+    </div>
+
+    <!-- Контейнер: Новые -->
+    <div id="leads-new-container" class="space-y-4"></div>
+
+    <!-- Контейнер: Принятые -->
+    <div id="leads-done-container" class="hidden space-y-4"></div>
 </div>
 
 <!-- Тост-уведомление для МАХ (копирование номера) -->
@@ -377,6 +387,7 @@ window.addEventListener('pageshow', () => {
 
 // ================= 📩 ЗАЯВКИ (LEADS) =================
 let allLeads = [];
+let currentLeadTab = 'new';
 
 // Имя оператора: спрашиваем один раз, храним в localStorage
 function getAdminName() {
@@ -400,99 +411,146 @@ async function loadLeads() {
         });
         allLeads = await response.json();
         renderLeads();
+        switchLeadTab(currentLeadTab);
     } catch (e) {
         console.error('Ошибка загрузки заявок:', e);
     }
 }
 
-function renderLeads() {
-    const container = document.getElementById('leads-container');
-    container.innerHTML = '';
+function switchLeadTab(tab) {
+    currentLeadTab = tab;
+    const newC = document.getElementById('leads-new-container');
+    const doneC = document.getElementById('leads-done-container');
+    const btnNew = document.getElementById('subtab-new');
+    const btnDone = document.getElementById('subtab-done');
 
-    if (allLeads.length === 0) {
-        container.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">📥</p><p class="text-gray-400 font-medium text-sm">Новых заявок нет</p></div>`;
-        return;
+    if (tab === 'new') {
+        newC.classList.remove('hidden');
+        doneC.classList.add('hidden');
+        btnNew.className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 font-extrabold transition-all';
+        btnDone.className = 'flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 font-bold transition-all';
+    } else {
+        doneC.classList.remove('hidden');
+        newC.classList.add('hidden');
+        btnDone.className = 'flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 font-extrabold transition-all';
+        btnNew.className = 'flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 font-bold transition-all';
     }
+}
+
+function buildLeadCard(lead, myName) {
+    const displayTime = lead.created_at || '';
+    const phoneDigits = (lead.phone || '').replace(/\D/g, '');
+    const safeName = (lead.name || '').replace(/"/g, '&quot;');
+
+    let statusBadge = '';
+    let actionBlock = '';
+
+    if (lead.status === 'new') {
+        statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-amber-200 text-amber-900">🟡 Новая</span>`;
+        actionBlock = `
+            <button onclick="lockLead(${lead.id})" class="w-full bg-sky-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-sky-700 active:scale-95 transition-all shadow-sm">
+                📞 Взять в работу
+            </button>`;
+    } else if (lead.status === 'in_progress') {
+        const isMine = lead.locked_by === myName;
+        statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-sky-200 text-sky-900">🔵 В работе${lead.locked_by ? ' у ' + lead.locked_by : ''}</span>`;
+
+        if (isMine) {
+            actionBlock = `
+            <div class="grid grid-cols-2 gap-2 mb-3">
+                <a href="https://wa.me/${phoneDigits}" target="_blank" class="text-center bg-green-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-green-600 active:scale-95 transition-all shadow-sm">💬 WhatsApp</a>
+                <a href="https://t.me/+${phoneDigits}" target="_blank" class="text-center bg-sky-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-sky-600 active:scale-95 transition-all shadow-sm">✈️ Telegram</a>
+                <button onclick="copyForMax('${lead.phone}')" class="text-center bg-indigo-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-indigo-600 active:scale-95 transition-all shadow-sm">Ⓜ️ МАХ</button>
+                <a href="tel:+${phoneDigits}" class="text-center bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 active:scale-95 transition-all shadow-sm">📱 Звонок</a>
+            </div>
+            <div class="flex flex-col gap-2 pt-2 border-t border-sky-200/60">
+                <select id="result-${lead.id}" class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    <option value="">— Итог разговора —</option>
+                    <option value="Записан">✅ Записан</option>
+                    <option value="Думает">🤔 Думает</option>
+                    <option value="Недозвон">📵 Недозвон</option>
+                    <option value="Отказ">❌ Отказ</option>
+                </select>
+                <input type="text" id="comment-${lead.id}" placeholder="Комментарий..." class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                <button onclick="completeLead(${lead.id})" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all shadow-sm">
+                    ✓ Завершить обработку
+                </button>
+            </div>`;
+        } else {
+            actionBlock = `<div class="text-center py-2 text-xs text-slate-500 font-semibold bg-slate-100 rounded-xl">🔒 Заявку обрабатывает ${lead.locked_by || 'другой оператор'}</div>`;
+        }
+    } else if (lead.status === 'completed') {
+        statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800">✅ Обработана</span>`;
+        actionBlock = `
+            <div class="bg-slate-50 p-3 rounded-lg border-l-4 border-emerald-500 mb-3 text-sm">
+                <p class="text-slate-700"><b>Итог:</b> ${lead.task_result || '—'}</p>
+                ${lead.comment ? `<p class="text-slate-600 text-xs mt-1">${lead.comment}</p>` : ''}
+                ${lead.locked_by ? `<p class="text-slate-400 text-[11px] mt-1">👤 Обработал: ${lead.locked_by}</p>` : ''}
+            </div>
+            <button onclick="archiveLead(${lead.id})" class="w-full bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 active:scale-95 transition-all">
+                📦 В архив
+            </button>`;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'p-4 sm:p-5 rounded-xl border bg-white/90 border-slate-200/90 shadow-sm transition-all';
+    card.innerHTML = `
+        <div class="flex justify-between items-start gap-2 mb-2">
+            ${statusBadge}
+            <span class="text-[11px] font-semibold text-slate-500">🕒 ${displayTime}</span>
+        </div>
+        <div class="mb-3">
+            <h3 class="font-bold text-base text-slate-900">${safeName}</h3>
+            <p class="text-slate-700 text-sm mt-0.5">📞 ${lead.phone || '—'}</p>
+            ${lead.email ? `<p class="text-slate-500 text-xs mt-0.5">✉️ ${lead.email}</p>` : ''}
+            <div class="flex gap-2 mt-1.5 text-[11px]">
+                <span class="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600 font-semibold">💬 ${lead.messenger_pref || 'Звонок'}</span>
+                ${lead.score ? `<span class="px-2 py-0.5 bg-amber-100 rounded-md text-amber-700 font-semibold">🎯 ${lead.score}</span>` : ''}
+            </div>
+        </div>
+        ${actionBlock}
+    `;
+    return card;
+}
+
+function renderLeads() {
+    const newContainer = document.getElementById('leads-new-container');
+    const doneContainer = document.getElementById('leads-done-container');
+    newContainer.innerHTML = '';
+    doneContainer.innerHTML = '';
 
     const myName = localStorage.getItem('admin_operator_name') || '';
 
-    allLeads.forEach(lead => {
-        const card = document.createElement('div');
+    const newLeads = allLeads.filter(l => l.status === 'new' || l.status === 'in_progress');
+    const doneLeads = allLeads.filter(l => l.status === 'completed');
+
+    // === ПОДРАЗДЕЛ "НОВЫЕ" ===
+    if (newLeads.length === 0) {
+        newContainer.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">📥</p><p class="text-gray-400 font-medium text-sm">Новых заявок нет</p></div>`;
+    } else {
+        newLeads.forEach(lead => newContainer.appendChild(buildLeadCard(lead, myName)));
+    }
+
+    // === ПОДРАЗДЕЛ "ПРИНЯТЫЕ" ===
+    if (doneLeads.length === 0) {
+        doneContainer.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">✅</p><p class="text-gray-400 font-medium text-sm">Принятых заявок пока нет</p></div>`;
+    } else {
+        const counts = {};
+        doneLeads.forEach(l => {
+            const who = l.locked_by || 'Без имени';
+            counts[who] = (counts[who] || 0) + 1;
+        });
+
+        let countsHTML = '<div class="flex flex-wrap gap-2 mb-3">';
+        Object.keys(counts).forEach(who => {
+            countsHTML += `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg text-[11px] font-bold">👤 ${who} — ${counts[who]}</span>`;
+        });
+        countsHTML += '</div>';
         
-        // Время выводится полностью, без обрезки
-        let displayTime = lead.created_at || '';
-
-        const phoneDigits = (lead.phone || '').replace(/\D/g, '');
-        const safeName = (lead.name || '').replace(/"/g, '&quot;');
-
-        let statusBadge = '';
-        let actionBlock = '';
-
-        if (lead.status === 'new') {
-            statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-amber-200 text-amber-900">🟡 Новая</span>`;
-            actionBlock = `
-                <button onclick="lockLead(${lead.id})" class="w-full bg-sky-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-sky-700 active:scale-95 transition-all shadow-sm">
-                    📞 Взять в работу
-                </button>`;
-        } else if (lead.status === 'in_progress') {
-            const isMine = lead.locked_by === myName;
-            statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-sky-200 text-sky-900">🔵 В работе${lead.locked_by ? ' у ' + lead.locked_by : ''}</span>`;
-
-            if (isMine) {
-                actionBlock = `
-                <div class="grid grid-cols-2 gap-2 mb-3">
-                    <a href="https://wa.me/${phoneDigits}" target="_blank" class="text-center bg-green-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-green-600 active:scale-95 transition-all shadow-sm">💬 WhatsApp</a>
-                    <a href="https://t.me/+${phoneDigits}" target="_blank" class="text-center bg-sky-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-sky-600 active:scale-95 transition-all shadow-sm">✈️ Telegram</a>
-                    <button onclick="copyForMax('${lead.phone}')" class="text-center bg-indigo-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-indigo-600 active:scale-95 transition-all shadow-sm">Ⓜ️ МАХ</button>
-                    <a href="tel:+${phoneDigits}" class="text-center bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 active:scale-95 transition-all shadow-sm">📱 Звонок</a>
-                </div>
-                <div class="flex flex-col gap-2 pt-2 border-t border-sky-200/60">
-                    <select id="result-${lead.id}" class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-                        <option value="">— Итог разговора —</option>
-                        <option value="Записан">✅ Записан</option>
-                        <option value="Думает">🤔 Думает</option>
-                        <option value="Недозвон">📵 Недозвон</option>
-                        <option value="Отказ">❌ Отказ</option>
-                    </select>
-                    <input type="text" id="comment-${lead.id}" placeholder="Комментарий..." class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-                    <button onclick="completeLead(${lead.id})" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all shadow-sm">
-                        ✓ Завершить обработку
-                    </button>
-                </div>`;
-            } else {
-                actionBlock = `<div class="text-center py-2 text-xs text-slate-500 font-semibold bg-slate-100 rounded-xl">🔒 Заявку обрабатывает ${lead.locked_by || 'другой оператор'}</div>`;
-            }
-        } else if (lead.status === 'completed') {
-            statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800">✅ Обработана</span>`;
-            actionBlock = `
-                <div class="bg-slate-50 p-3 rounded-lg border-l-4 border-emerald-500 mb-3 text-sm">
-                    <p class="text-slate-700"><b>Итог:</b> ${lead.task_result || '—'}</p>
-                    ${lead.comment ? `<p class="text-slate-600 text-xs mt-1">${lead.comment}</p>` : ''}
-                </div>
-                <button onclick="archiveLead(${lead.id})" class="w-full bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 active:scale-95 transition-all">
-                    📦 В архив
-                </button>`;
-        }
-
-        card.className = 'p-4 sm:p-5 rounded-xl border bg-white/90 border-slate-200/90 shadow-sm transition-all';
-        card.innerHTML = `
-            <div class="flex justify-between items-start gap-2 mb-2">
-                ${statusBadge}
-                <span class="text-[11px] font-semibold text-slate-500">🕒 ${displayTime}</span>
-            </div>
-            <div class="mb-3">
-                <h3 class="font-bold text-base text-slate-900">${safeName}</h3>
-                <p class="text-slate-700 text-sm mt-0.5">📞 ${lead.phone || '—'}</p>
-                ${lead.email ? `<p class="text-slate-500 text-xs mt-0.5">✉️ ${lead.email}</p>` : ''}
-                <div class="flex gap-2 mt-1.5 text-[11px]">
-                    <span class="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600 font-semibold">💬 ${lead.messenger_pref || 'Звонок'}</span>
-                    ${lead.score ? `<span class="px-2 py-0.5 bg-amber-100 rounded-md text-amber-700 font-semibold">🎯 ${lead.score}</span>` : ''}
-                </div>
-            </div>
-            ${actionBlock}
-        `;
-        container.appendChild(card);
-    });
+        doneContainer.innerHTML = countsHTML;
+        
+        doneLeads.forEach(lead => doneContainer.appendChild(buildLeadCard(lead, myName)));
+    }
 }
 
 async function lockLead(id) {
