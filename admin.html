@@ -493,7 +493,6 @@ function buildLeadCard(lead, myName) {
             ${lead.email ? `<p class="text-slate-500 text-xs mt-0.5">✉️ ${lead.email}</p>` : ''}
             <div class="flex gap-2 mt-1.5 text-[11px]">
                 <span class="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600 font-semibold">💬 ${lead.messenger_pref || 'Звонок'}</span>
-                ${lead.score ? `<span class="px-2 py-0.5 bg-amber-100 rounded-md text-amber-700 font-semibold">🎯 ${lead.score}</span>` : ''}
             </div>
         </div>
         ${actionBlock}
@@ -569,11 +568,15 @@ async function completeLead(id) {
 
 async function returnLead(id) {
     if (!confirm('Вернуть заявку в «Новые»?')) return;
-    await fetch(`${API_URL}/api/leads/${id}/lock?ngrok-skip-browser-warning=true`, {
+    const res = await fetch(`${API_URL}/api/leads/${id}/reopen?ngrok-skip-browser-warning=true`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ admin_name: getAdminName() })
+        headers: { 'ngrok-skip-browser-warning': 'true' }
     });
+    if (!res.ok) {
+        alert('⚠️ Ошибка при возврате заявки на сервере.');
+        return;
+    }
+    currentLeadTab = 'new';
     loadLeads();
 }
 
