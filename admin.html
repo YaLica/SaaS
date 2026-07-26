@@ -464,16 +464,8 @@ function buildLeadCard(lead, myName) {
                 <a href="tel:+${phoneDigits}" class="text-center bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 active:scale-95 transition-all shadow-sm">📱 Звонок</a>
             </div>
             <div class="flex flex-col gap-2 pt-2 border-t border-sky-200/60">
-                <select id="result-${lead.id}" class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
-                    <option value="">— Итог разговора —</option>
-                    <option value="Записан">✅ Записан</option>
-                    <option value="Думает">🤔 Думает</option>
-                    <option value="Недозвон">📵 Недозвон</option>
-                    <option value="Отказ">❌ Отказ</option>
-                </select>
-                <input type="text" id="comment-${lead.id}" placeholder="Комментарий..." class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
                 <button onclick="completeLead(${lead.id})" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all shadow-sm">
-                    ✓ Завершить обработку
+                    ✅ Принято
                 </button>
             </div>`;
         } else {
@@ -482,13 +474,9 @@ function buildLeadCard(lead, myName) {
     } else if (lead.status === 'completed') {
         statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800">✅ Обработана</span>`;
         actionBlock = `
-            <div class="bg-slate-50 p-3 rounded-lg border-l-4 border-emerald-500 mb-3 text-sm">
-                <p class="text-slate-700"><b>Итог:</b> ${lead.task_result || '—'}</p>
-                ${lead.comment ? `<p class="text-slate-600 text-xs mt-1">${lead.comment}</p>` : ''}
-                ${lead.locked_by ? `<p class="text-slate-400 text-[11px] mt-1">👤 Обработал: ${lead.locked_by}</p>` : ''}
-            </div>
-            <button onclick="archiveLead(${lead.id})" class="w-full bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 active:scale-95 transition-all">
-                📦 В архив
+            ${lead.locked_by ? `<div class="bg-slate-50 p-3 rounded-lg border-l-4 border-emerald-500 mb-3 text-sm"><p class="text-slate-400 text-[11px]">👤 Обработал: ${lead.locked_by}</p></div>` : ''}
+            <button onclick="returnLead(${lead.id})" class="w-full bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 active:scale-95 transition-all">
+                ↩️ Вернуть в новые
             </button>`;
     }
 
@@ -571,22 +559,20 @@ async function lockLead(id) {
 }
 
 async function completeLead(id) {
-    const result = document.getElementById(`result-${id}`).value;
-    const comment = document.getElementById(`comment-${id}`).value.trim();
-    if (!result) { alert('Выберите итог разговора!'); return; }
     await fetch(`${API_URL}/api/leads/${id}/complete?ngrok-skip-browser-warning=true`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-        body: JSON.stringify({ task_result: result, comment: comment })
+        body: JSON.stringify({ task_result: 'Принято', comment: '' })
     });
     loadLeads();
 }
 
-async function archiveLead(id) {
-    if (!confirm('Убрать заявку в архив?')) return;
-    await fetch(`${API_URL}/api/leads/${id}/archive?ngrok-skip-browser-warning=true`, {
+async function returnLead(id) {
+    if (!confirm('Вернуть заявку в «Новые»?')) return;
+    await fetch(`${API_URL}/api/leads/${id}/lock?ngrok-skip-browser-warning=true`, {
         method: 'PUT',
-        headers: { 'ngrok-skip-browser-warning': 'true' }
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+        body: JSON.stringify({ admin_name: getAdminName() })
     });
     loadLeads();
 }
