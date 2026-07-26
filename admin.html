@@ -255,11 +255,8 @@ function renderReviews() {
         const card = document.createElement('div');
         card.className = `p-4 sm:p-5 rounded-xl border transition-all ${isApproved ? 'bg-white/90 border-slate-200/90 shadow-sm' : 'bg-amber-50 border-amber-300 shadow-sm'}`;
         
-        // Обрезаем секунды
+        // Время выводится полностью, без обрезки
         let displayTime = review.created_at || '';
-        if (displayTime.length > 5 && displayTime.includes(':')) {
-            displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
-        }
 
         let adminBlock = '';
         if (!isApproved) {
@@ -421,10 +418,9 @@ function renderLeads() {
 
     allLeads.forEach(lead => {
         const card = document.createElement('div');
+        
+        // Время выводится полностью, без обрезки
         let displayTime = lead.created_at || '';
-        if (displayTime.length > 5 && displayTime.includes(':')) {
-            displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
-        }
 
         const phoneDigits = (lead.phone || '').replace(/\D/g, '');
         const safeName = (lead.name || '').replace(/"/g, '&quot;');
