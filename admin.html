@@ -89,10 +89,18 @@
         </div>
 
         <!-- Вкладка Заявки -->
-        <div id="content-leads" class="hidden text-center py-12">
-            <p class="text-4xl mb-2">📥</p>
-            <h3 class="font-bold text-slate-800 mb-1">Модуль «Заявки / Лиды»</h3>
-            <p class="text-xs text-slate-500 max-w-xs mx-auto">Скоро здесь будут контакты с форм</p>
+        <div id="content-leads" class="hidden space-y-4">
+            <div id="leads-container" class="space-y-4"></div>
+        </div>
+
+        <!-- Тост-уведомление для МАХ (копирование номера) -->
+        <div id="max-toast" class="hidden fixed left-1/2 bottom-6 -translate-x-1/2 z-50 w-[92%] max-w-sm bg-emerald-50 border-2 border-emerald-300 rounded-2xl shadow-2xl p-4 text-center">
+            <p class="text-sm font-bold text-emerald-900 mb-1">📋 <span id="max-toast-phone"></span></p>
+            <p class="text-xs text-emerald-700 leading-relaxed mb-3">Номер скопирован!<br>Вставьте его в поиск приложения MAX, чтобы написать клиенту.</p>
+            <div class="flex gap-2">
+                <button onclick="closeMaxToast()" class="flex-1 py-2.5 bg-white border border-emerald-300 text-emerald-700 rounded-xl font-bold text-xs hover:bg-emerald-100 transition-all">Закрыть</button>
+                <a href="https://max.ru" target="_blank" onclick="closeMaxToast()" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all">Открыть MAX 🚀</a>
+            </div>
         </div>
 
         <!-- Вкладка Запись -->
@@ -194,6 +202,11 @@
             }
             
             updateSettingsUI();
+
+            // Загружаем заявки при переходе на вкладку «Заявки»
+            if (tabName === 'leads') {
+                loadLeads();
+            }
         }
 
         function toggleShowAll() {
@@ -361,6 +374,180 @@
             };
             applyTheme(tabThemes[currentTab]);
         });
+
+        // ================= 📩 ЗАЯВКИ (LEADS) =================
+        let allLeads = [];
+
+        // Имя админа (Вариант А): спрашиваем один раз, храним в localStorage
+        function getAdminName() {
+            let name = localStorage.getItem('admin_operator_name');
+            if (!name) {
+                name = prompt('Как вас зовут? (для отметки «взято в работу»)');
+                if (name && name.trim()) {
+                    name = name.trim();
+                    localStorage.setItem('admin_operator_name', name);
+                } else {
+                    name = 'Админ';
+                }
+            }
+            return name;
+        }
+
+        async function loadLeads() {
+            try {
+                const response = await fetch(`${API_URL}/api/leads?ngrok-skip-browser-warning=true`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                allLeads = await response.json();
+                renderLeads();
+            } catch (e) {
+                console.error('Ошибка загрузки заявок:', e);
+            }
+        }
+
+        function renderLeads() {
+            const container = document.getElementById('leads-container');
+            container.innerHTML = '';
+
+            if (allLeads.length === 0) {
+                container.innerHTML = `<div class="text-center py-12"><p class="text-4xl mb-2">📥</p><p class="text-gray-400 font-medium text-sm">Новых заявок нет</p></div>`;
+                return;
+            }
+
+            const myName = localStorage.getItem('admin_operator_name') || '';
+
+            allLeads.forEach(lead => {
+                const card = document.createElement('div');
+                let displayTime = lead.created_at || '';
+                if (displayTime.length > 5 && displayTime.includes(':')) {
+                    displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
+                }
+
+                const phoneDigits = (lead.phone || '').replace(/\D/g, '');
+                const safeName = (lead.name || '').replace(/"/g, '&quot;');
+
+                let statusBadge = '';
+                let actionBlock = '';
+
+                if (lead.status === 'new') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-amber-200 text-amber-900">🟡 Новая</span>`;
+                    actionBlock = `
+                        <button onclick="lockLead(${lead.id})" class="w-full bg-sky-600 text-white py-3 px-4 rounded-xl font-bold text-sm hover:bg-sky-700 active:scale-95 transition-all shadow-sm">
+                            📞 Взять в работу
+                        </button>`;
+                } else if (lead.status === 'in_progress') {
+                    const isMine = lead.locked_by === myName;
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-sky-200 text-sky-900">🔵 В работе${lead.locked_by ? ' у ' + lead.locked_by : ''}</span>`;
+
+                    if (isMine) {
+                        actionBlock = `
+                        <div class="grid grid-cols-2 gap-2 mb-3">
+                            <a href="https://wa.me/${phoneDigits}" target="_blank" class="text-center bg-green-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-green-600 active:scale-95 transition-all shadow-sm">💬 WhatsApp</a>
+                            <a href="https://t.me/+${phoneDigits}" target="_blank" class="text-center bg-sky-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-sky-600 active:scale-95 transition-all shadow-sm">✈️ Telegram</a>
+                            <button onclick="copyForMax('${lead.phone}')" class="text-center bg-indigo-500 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-indigo-600 active:scale-95 transition-all shadow-sm">Ⓜ️ МАХ</button>
+                            <a href="tel:+${phoneDigits}" class="text-center bg-slate-700 text-white py-2.5 rounded-xl font-bold text-xs hover:bg-slate-800 active:scale-95 transition-all shadow-sm">📱 Звонок</a>
+                        </div>
+                        <div class="flex flex-col gap-2 pt-2 border-t border-sky-200/60">
+                            <select id="result-${lead.id}" class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                                <option value="">— Итог разговора —</option>
+                                <option value="Записан">✅ Записан</option>
+                                <option value="Думает">🤔 Думает</option>
+                                <option value="Недозвон">📵 Недозвон</option>
+                                <option value="Отказ">❌ Отказ</option>
+                            </select>
+                            <input type="text" id="comment-${lead.id}" placeholder="Комментарий..." class="w-full border border-sky-300 p-2.5 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-sky-500">
+                            <button onclick="completeLead(${lead.id})" class="w-full bg-emerald-600 text-white py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 active:scale-95 transition-all shadow-sm">
+                                ✓ Завершить обработку
+                            </button>
+                        </div>`;
+                    } else {
+                        actionBlock = `<div class="text-center py-2 text-xs text-slate-500 font-semibold bg-slate-100 rounded-xl">🔒 Заявку обрабатывает ${lead.locked_by || 'другой оператор'}</div>`;
+                    }
+                } else if (lead.status === 'completed') {
+                    statusBadge = `<span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800">✅ Обработана</span>`;
+                    actionBlock = `
+                        <div class="bg-slate-50 p-3 rounded-lg border-l-4 border-emerald-500 mb-3 text-sm">
+                            <p class="text-slate-700"><b>Итог:</b> ${lead.task_result || '—'}</p>
+                            ${lead.comment ? `<p class="text-slate-600 text-xs mt-1">${lead.comment}</p>` : ''}
+                        </div>
+                        <button onclick="archiveLead(${lead.id})" class="w-full bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs hover:bg-slate-300 active:scale-95 transition-all">
+                            📦 В архив
+                        </button>`;
+                }
+
+                card.className = 'p-4 sm:p-5 rounded-xl border bg-white/90 border-slate-200/90 shadow-sm transition-all';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start gap-2 mb-2">
+                        ${statusBadge}
+                        <span class="text-[11px] font-semibold text-slate-500">🕒 ${displayTime}</span>
+                    </div>
+                    <div class="mb-3">
+                        <h3 class="font-bold text-base text-slate-900">${safeName}</h3>
+                        <p class="text-slate-700 text-sm mt-0.5">📞 ${lead.phone || '—'}</p>
+                        ${lead.email ? `<p class="text-slate-500 text-xs mt-0.5">✉️ ${lead.email}</p>` : ''}
+                        <div class="flex gap-2 mt-1.5 text-[11px]">
+                            <span class="px-2 py-0.5 bg-slate-100 rounded-md text-slate-600 font-semibold">💬 ${lead.messenger_pref || 'Звонок'}</span>
+                            ${lead.score ? `<span class="px-2 py-0.5 bg-amber-100 rounded-md text-amber-700 font-semibold">🎯 ${lead.score}</span>` : ''}
+                        </div>
+                    </div>
+                    ${actionBlock}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function lockLead(id) {
+            const adminName = getAdminName();
+            try {
+                const res = await fetch(`${API_URL}/api/leads/${id}/lock?ngrok-skip-browser-warning=true`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ admin_name: adminName })
+                });
+                if (!res.ok) {
+                    alert('⚠️ Эту заявку уже взял другой оператор!');
+                }
+                loadLeads();
+            } catch (e) {
+                console.error('Ошибка:', e);
+            }
+        }
+
+        async function completeLead(id) {
+            const result = document.getElementById(`result-${id}`).value;
+            const comment = document.getElementById(`comment-${id}`).value.trim();
+            if (!result) { alert('Выберите итог разговора!'); return; }
+            await fetch(`${API_URL}/api/leads/${id}/complete?ngrok-skip-browser-warning=true`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                body: JSON.stringify({ task_result: result, comment: comment })
+            });
+            loadLeads();
+        }
+
+        async function archiveLead(id) {
+            if (!confirm('Убрать заявку в архив?')) return;
+            await fetch(`${API_URL}/api/leads/${id}/archive?ngrok-skip-browser-warning=true`, {
+                method: 'PUT',
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            loadLeads();
+        }
+
+        // МАХ: копируем номер в буфер + показываем мятный тост
+        function copyForMax(phone) {
+            const digits = (phone || '').replace(/\D/g, '');
+            const pretty = '+' + digits;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(pretty).catch(function(){});
+            }
+            document.getElementById('max-toast-phone').innerText = 'Номер ' + pretty + ' скопирован';
+            document.getElementById('max-toast').classList.remove('hidden');
+        }
+
+        function closeMaxToast() {
+            document.getElementById('max-toast').classList.add('hidden');
+        }
 
         switchTab('reviews');
         loadReviews();
