@@ -221,6 +221,13 @@
                 const card = document.createElement('div');
                 card.className = `p-4 sm:p-5 rounded-xl border transition-all ${isApproved ? 'bg-white/90 border-slate-200/90 shadow-sm' : 'bg-amber-50 border-amber-300 shadow-sm'}`;
                 
+                // --- СРЕЗ СЕКУНД ---
+                let displayTime = review.created_at || 'Недавний';
+                if (displayTime.length > 5 && displayTime.includes(':')) {
+                    // Обрезает строку до последнего двоеточия (убирает секунды)
+                    displayTime = displayTime.substring(0, displayTime.lastIndexOf(':'));
+                }
+                
                 let adminBlock = '';
                 if (!isApproved) {
                     adminBlock = `
@@ -272,8 +279,10 @@
                             <span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider ${isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-200 text-amber-900'}">
                                 ${isApproved ? '✓ Опубликован' : '⏳ Ожидает'}
                             </span>
-                            <span class="text-[11px] font-semibold text-slate-500">🕒 ${review.created_at || 'Недавний'}</span>
+                            <span class="text-[11px] font-semibold text-slate-500">🕒 ${displayTime}</span>
                         </div>
+                        <!-- КНОПКА УДАЛЕНИЯ НАВСЕГДА ВЕРНУЛАСЬ -->
+                        <button onclick="deleteReview(${review.id})" class="text-slate-400 hover:text-red-500 p-1 rounded-lg transition-colors text-sm font-bold active:bg-red-50" title="Удалить навсегда">🗑️</button>
                     </div>
                     <div class="mb-1">
                         <h3 class="font-bold text-base text-slate-900">${review.author_name || 'Аноним'}</h3>
@@ -315,6 +324,17 @@
         async function approveOnly(id) {
             await fetch(`${API_URL}/api/reviews/${id}/approve?ngrok-skip-browser-warning=true`, { method: 'PUT', headers: { 'ngrok-skip-browser-warning': 'true' } });
             loadReviews();
+        }
+
+        // --- ВОЗВРАЩЕННАЯ ФУНКЦИЯ УДАЛЕНИЯ НАВСЕГДА ---
+        async function deleteReview(id) {
+            if (confirm("Удалить этот отзыв НАВСЕГДА?")) {
+                await fetch(`${API_URL}/api/reviews/${id}?ngrok-skip-browser-warning=true`, { 
+                    method: 'DELETE',
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                loadReviews();
+            }
         }
 
         switchTab('reviews');
