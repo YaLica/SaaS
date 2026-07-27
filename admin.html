@@ -76,7 +76,7 @@ input, textarea, select { font-size: 16px !important; }
 <div class="flex bg-slate-100 p-1 rounded-xl mb-4 gap-1 text-xs sm:text-sm font-bold">
     <button id="tab-reviews" onclick="switchTab('reviews')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-slate-900 transition-all">⭐ Отзывы</button>
     <button id="tab-leads" onclick="switchTab('leads')" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all">📩 Заявки</button>
-    <button id="tab-appointments" onclick="switchTab('appointments')" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all">📅 Запись</button>
+    <button id="tab-questions" onclick="switchTab('questions')" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all">❓ Вопросы</button>
 </div>
 
 <!-- Вкладка Отзывы -->
@@ -121,11 +121,11 @@ input, textarea, select { font-size: 16px !important; }
     </div>
 </div>
 
-<!-- Вкладка Запись -->
-<div id="content-appointments" class="hidden text-center py-12">
-    <p class="text-4xl mb-2">📆</p>
-    <h3 class="font-bold text-slate-800 mb-1">Модуль «Онлайн-запись»</h3>
-    <p class="text-xs text-slate-500 max-w-xs mx-auto">Скоро здесь будет календарь бронирований</p>
+<!-- Вкладка Вопросы -->
+<div id="content-questions" class="hidden text-center py-12">
+    <p class="text-4xl mb-2">❓</p>
+    <h3 class="font-bold text-slate-800 mb-1">Вопросы от подписчиков</h3>
+    <p class="text-xs text-slate-500 max-w-xs mx-auto">Здесь будут вопросы от подписчиков. Раздел в разработке.</p>
 </div>
 
 </div>
@@ -146,7 +146,7 @@ let showAllLeadsDone = false;
 const tabNamesRU = {
     'reviews': '⭐ Отзывы',
     'leads': '📩 Заявки',
-    'appointments': '📅 Запись'
+    'questions': '❓ Вопросы'
 };
 
 // ИЗОЛИРОВАННЫЕ КЛЮЧИ АДМИНКИ.
@@ -154,7 +154,7 @@ const ADMIN_KEYS = {
     limit: 'admin_panel_limit',
     reviews: 'admin_panel_theme_reviews',
     leads: 'admin_panel_theme_leads',
-    appointments: 'admin_panel_theme_appointments'
+    questions: 'admin_panel_theme_questions'
 };
 
 let displayLimit = parseInt(localStorage.getItem(ADMIN_KEYS.limit)) || 20;
@@ -162,7 +162,7 @@ let displayLimit = parseInt(localStorage.getItem(ADMIN_KEYS.limit)) || 20;
 let tabThemes = {
     reviews: localStorage.getItem(ADMIN_KEYS.reviews) || 'blue',
     leads: localStorage.getItem(ADMIN_KEYS.leads) || 'yellow',
-    appointments: localStorage.getItem(ADMIN_KEYS.appointments) || 'green'
+    questions: localStorage.getItem(ADMIN_KEYS.questions) || 'green'
 };
 
 const themeStyles = {
@@ -213,7 +213,7 @@ function updateSettingsUI() {
 
 function switchTab(tabName) {
     currentTab = tabName;
-    ['reviews', 'leads', 'appointments'].forEach(tab => {
+    ['reviews', 'leads', 'questions'].forEach(tab => {
         document.getElementById(`content-${tab}`).classList.add('hidden');
         document.getElementById(`tab-${tab}`).className = 'flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-900 transition-all font-bold';
     });
@@ -392,7 +392,7 @@ window.addEventListener('pageshow', () => {
     tabThemes = {
         reviews: localStorage.getItem(ADMIN_KEYS.reviews) || 'blue',
         leads: localStorage.getItem(ADMIN_KEYS.leads) || 'yellow',
-        appointments: localStorage.getItem(ADMIN_KEYS.appointments) || 'green'
+        questions: localStorage.getItem(ADMIN_KEYS.questions) || 'green'
     };
     applyTheme(tabThemes[currentTab]);
 });
